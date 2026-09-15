@@ -16,11 +16,17 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+
+/*######
+## npc_stormwind_infantry
+######*/
+
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
-#include "ScriptedGossip.h"
 #include "ScriptedEscortAI.h"
 #include "ObjectMgr.h"
+#include "ScriptMgr.h"
 #include "World.h"
 #include "PetAI.h"
 #include "PassiveAI.h"
@@ -37,7 +43,24 @@
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
 
-#define NPC_WOLF 49871
+enum NorthshireCreatures
+{
+    NPC_STORMWIND_INFANTRY = 49869,
+    NPC_BLACKROCK_WORG     = 49871
+};
+
+enum NorthshireSettings
+{
+    WORG_MIN_HEALTH_PCT     = 70,
+    WORG_FIGHTING_FACTION   = 232,
+    WORG_RESTORE_FACTION    = 7
+};
+
+enum NorthshireSpells
+{
+    SPELL_WORG_GROWL   = 2649,
+    SPELL_RENEWED_LIFE = 93097
+};
 
 enum
 {
@@ -85,13 +108,78 @@ public:
         void DamageDealt(Unit* target, uint32& damage, DamageEffectType /*damageType*/) override
         {
             if (target->ToCreature())
-                if (target->GetHealth() <= damage || target->GetHealthPct() <= 70.0f)
+                if (target->GetHealth() <= damage || target->GetHealthPct() <= WORG_MIN_HEALTH_PCT)
                     damage = 0;
+        }
+
+        void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override
+        {
+            if (summon->GetGUID() == wolfTarget)
+                ReturnHomeAfterWorg();
+        }
+
+        void SummonedCreatureDespawn(Creature* summon) override
+        {
+            if (summon->GetGUID() == wolfTarget)
+                ReturnHomeAfterWorg();
+        }
+
+        void ReturnHomeAfterWorg()
+        {
+            wolfTarget = ObjectGuid::Empty;
+            me->DeleteThreatList();
+            me->CombatStop(true);
+            me->GetMotionMaster()->MoveTargetedHome();
+            waitTime = urand(10000, 20000);
+        }
+
+        bool IsAtHome() const
+        {
+            Position const& home = me->GetHomePosition();
+            return me->GetDistance2d(home.GetPositionX(), home.GetPositionY()) <= 1.0f;
+        }
+
+        bool HandleUnassignedCombat()
+        {
+            if (!wolfTarget.IsEmpty())
+                return false;
+
+            // The infantry may temporarily help against another infantry's worg.
+            // A foreign worg is only a combat victim; it is never adopted as
+            // this infantry's assigned wolfTarget.
+            if (Unit* victim = me->GetVictim())
+            {
+                if (victim->IsAlive() && me->IsValidAttackTarget(victim))
+                    return true;
+
+                me->AttackStop();
+            }
+
+            // A foreign target can disappear while the combat flag/threat list
+            // remains set. Clear that stale combat state before returning home.
+            if (me->IsInCombat())
+            {
+                me->DeleteThreatList();
+                me->CombatStop(true);
+            }
+
+            // After any unassigned/assist combat, always recover to the
+            // infantry's original DB/home position before spawning its worg.
+            if (!IsAtHome())
+            {
+                me->GetMotionMaster()->MoveTargetedHome();
+                return true;
+            }
+
+            return false;
         }
 
         void UpdateAI(uint32 diff) override
         {
             DoMeleeAttackIfReady();
+
+            if (HandleUnassignedCombat())
+                return;
 
             if (waitTime && waitTime >= diff)
             {
@@ -107,19 +195,24 @@ public:
                 {
                     if (wolf->IsAlive())
                     {
+                        // Keep the infantry on its assigned worg. Do not force the
+                        // worg back onto the infantry here: player threat is allowed
+                        // to take over and both creatures may chase the player.
                         if (me->GetVictim() != wolf)
                         {
                             me->getThreatManager().addThreat(wolf, 1000000.0f);
                             wolf->getThreatManager().addThreat(me, 1000000.0f);
-                            me->Attack(wolf, true);
+                            AttackStart(wolf);
                         }
                     }
                     else
                     {
+                        ReturnHomeAfterWorg();
                         wolf->DespawnOrUnsummon();
-                        wolfTarget = ObjectGuid::Empty;
                     }
                 }
+                else
+                    ReturnHomeAfterWorg();
             }
             else
             {
@@ -129,11 +222,24 @@ public:
                 float z = me->GetMap()->GetHeight(me->GetPhaseShift(), wolfPos.GetPositionX(), wolfPos.GetPositionY(), wolfPos.GetPositionZ());
                 wolfPos.m_positionZ = z;
 
-                if (Creature* wolf = me->SummonCreature(NPC_WOLF, wolfPos))
+                if (Creature* wolf = me->SummonCreature(NPC_BLACKROCK_WORG, wolfPos))
                 {
+                    // HeronCore uses a temporary combat faction for the staged
+                    // infantry-vs-worg fight. The worg AI restores Haven's normal
+                    // faction (7) when it leaves combat.
+                    wolf->SetFaction(WORG_FIGHTING_FACTION);
+
                     me->getThreatManager().addThreat(wolf, 1000000.0f);
                     wolf->getThreatManager().addThreat(me, 1000000.0f);
+
                     AttackStart(wolf);
+
+                    // One-time reciprocal start. Unlike the previous experiment,
+                    // this is not re-applied while a player owns the worg's threat.
+                    if (wolf->IsAIEnabled)
+                        wolf->AI()->AttackStart(me);
+
+                    me->SetFacingToObject(wolf);
                     wolf->SetFacingToObject(me);
                     wolfTarget = wolf->GetGUID();
                 }
@@ -142,6 +248,103 @@ public:
     };
 };
 
+/*######
+## npc_blackrock_battle_worg
+######*/
+
+class npc_blackrock_battle_worg : public CreatureScript
+{
+public:
+    npc_blackrock_battle_worg() : CreatureScript("npc_blackrock_battle_worg") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_blackrock_battle_worgAI(creature);
+    }
+
+    struct npc_blackrock_battle_worgAI : public ScriptedAI
+    {
+        npc_blackrock_battle_worgAI(Creature* creature) : ScriptedAI(creature) { }
+
+        uint32 seekTimer;
+        uint32 growlTimer;
+
+        void Reset() override
+        {
+            seekTimer = urand(1000, 2000);
+            growlTimer = urand(8500, 10000);
+            me->SetFaction(WORG_RESTORE_FACTION);
+        }
+
+        void DamageTaken(Unit* attacker, uint32& damage) override
+        {
+            if (attacker->GetTypeId() == TYPEID_PLAYER || attacker->IsPet())
+            {
+                // A player/pet attacking the staged worg takes over its threat.
+                // The infantry deliberately keeps chasing the worg.
+                me->getThreatManager().resetAllAggro();
+                me->getThreatManager().addThreat(attacker, 1000000.0f);
+                AttackStart(attacker);
+            }
+
+            // Infantry must not kill the ambient battle worg on its own.
+            if (attacker->GetEntry() == NPC_STORMWIND_INFANTRY)
+                if (me->GetHealth() <= damage || me->GetHealthPct() <= WORG_MIN_HEALTH_PCT)
+                    damage = 0;
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (seekTimer <= diff)
+            {
+                if (me->IsAlive() && !me->IsInCombat())
+                {
+                    Position const& home = me->GetHomePosition();
+                    if (me->GetDistance2d(home.GetPositionX(), home.GetPositionY()) <= 1.0f)
+                    {
+                        // Haven summons the staged worg 2.5 yards in front of the
+                        // infantry, so use 5 yards rather than HeronCore's 1 yard.
+                        if (Creature* infantry = me->FindNearestCreature(NPC_STORMWIND_INFANTRY, 5.0f, true))
+                        {
+                            me->SetFaction(WORG_FIGHTING_FACTION);
+                            me->getThreatManager().addThreat(infantry, 1.0f);
+                            infantry->getThreatManager().addThreat(me, 1.0f);
+                            AttackStart(infantry);
+                        }
+                    }
+                }
+
+                seekTimer = urand(1000, 2000);
+            }
+            else
+                seekTimer -= diff;
+
+            if (!UpdateVictim())
+            {
+                // Outside the staged fight the creature returns to Haven's
+                // normal 49871 faction rather than remaining globally hostile.
+                me->SetFaction(WORG_RESTORE_FACTION);
+                return;
+            }
+
+            if (growlTimer <= diff)
+            {
+                DoCastVictim(SPELL_WORG_GROWL);
+                growlTimer = urand(8500, 10000);
+            }
+            else
+                growlTimer -= diff;
+
+            DoMeleeAttackIfReady();
+        }
+    };
+};
+
+/*######
+## npc_stormwind_injured_soldier
+######*/
+
+// 50047 - Injured Stormwind Infantry
 struct npc_stormwind_injured_soldier : public ScriptedAI
 {
     npc_stormwind_injured_soldier(Creature* creature) : ScriptedAI(creature) { }
@@ -149,48 +352,88 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
     void Reset() override
     {
         ScriptedAI::Reset();
+
+        _clickerGuid.Clear();
+
         me->NearTeleportTo(me->GetHomePosition());
         me->SetStandState(UNIT_STAND_STATE_DEAD);
+
+        // Fear No Evil uses the native spell-click interaction.
+        // Do not expose a gossip interaction for this creature.
+        me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+        me->AddNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
     }
 
-    void sGossipHello(Player* player) override
+    void OnSpellClick(Unit* clicker, bool& result) override
     {
-        CloseGossipMenuFor(player);
-        if (player->GetQuestStatus(QUEST_FEAR_NO_EVIL_WORGEN_WARRIOR) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_2) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_3) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_4) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(QUEST_FEAR_NO_EIVL_ALLIANCE_5) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_6) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_NIGHT_ELF_WARLOCK_DK) == QUEST_STATUS_INCOMPLETE)
+        Player* player = clicker ? clicker->ToPlayer() : nullptr;
+        if (!player || !HasFearNoEvilQuest(player))
         {
-            me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-            player->CastSpell(me, 93072, true);
-            me->SetStandState(UNIT_STAND_STATE_STAND);
-            me->GetScheduler().Schedule(1s, [this, player](TaskContext /*task*/)
+            result = false;
+            return;
+        }
+
+        _clickerGuid = player->GetGUID();
+
+        // 93072 is executed by npc_spellclick_spells and supplies quest credit.
+        // The soldier itself owns the revive visual, matching the reference
+        // implementation and avoiding player-owned/minion presentation.
+        me->CastSpell(me, SPELL_RENEWED_LIFE, true);
+
+        me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+        me->SetStandState(UNIT_STAND_STATE_STAND);
+
+        me->GetScheduler().Schedule(1s, [this](TaskContext /*task*/)
+        {
+            if (Player* player = ObjectAccessor::GetPlayer(*me, _clickerGuid))
             {
                 me->SetFacingToObject(player);
-                me->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE);
+
+                // Passing the player supplies the context used by $N in
+                // creature_text.
+                Talk(0, player);
+            }
+            else
                 Talk(0);
-            });
-            me->GetScheduler().Schedule(3s, [this](TaskContext /*task*/)
-            {
-                me->GetMotionMaster()->MoveRandom(10.0f);
-                me->ForcedDespawn(3000, 15s);
-            });
-        }
+
+            me->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE);
+        });
+
+        me->GetScheduler().Schedule(3s, [this](TaskContext /*task*/)
+        {
+            me->GetMotionMaster()->MoveRandom(10.0f);
+            me->ForcedDespawn(3000, 15s);
+        });
     }
+
+private:
+    static bool HasFearNoEvilQuest(Player const* player)
+    {
+        return player->GetQuestStatus(QUEST_FEAR_NO_EVIL_WORGEN_WARRIOR) == QUEST_STATUS_INCOMPLETE
+            || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE) == QUEST_STATUS_INCOMPLETE
+            || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_2) == QUEST_STATUS_INCOMPLETE
+            || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_3) == QUEST_STATUS_INCOMPLETE
+            || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_4) == QUEST_STATUS_INCOMPLETE
+            || player->GetQuestStatus(QUEST_FEAR_NO_EIVL_ALLIANCE_5) == QUEST_STATUS_INCOMPLETE
+            || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_6) == QUEST_STATUS_INCOMPLETE
+            || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_NIGHT_ELF_WARLOCK_DK) == QUEST_STATUS_INCOMPLETE;
+    }
+
+    ObjectGuid _clickerGuid;
 };
+
+/*######
+## npc_training_dummy_elwynn
+######*/
 
 enum eTrainingDummySpells
 {
     SPELL_CHARGE        = 100,
-    SPELL_AUTORITE      = 105361,
+    SPELL_AUTORITE      = 105361, // OnDamage
     SPELL_ASSURE        = 56641,
     SPELL_EVISCERATION  = 2098,
     SPELL_MOT_DOULEUR_1 = 589,
-    SPELL_MOT_DOULEUR_2 = 124464,
+    SPELL_MOT_DOULEUR_2 = 124464, // Je ne sais pas si un des deux est le bon
     SPELL_NOVA          = 122,
     SPELL_CORRUPTION_1  = 172,
     SPELL_CORRUPTION_2  = 87389,
@@ -203,16 +446,18 @@ class npc_training_dummy_start_zones : public CreatureScript
 public:
     npc_training_dummy_start_zones() : CreatureScript("npc_training_dummy_start_zones") { }
 
-    struct npc_training_dummy_start_zonesAI : public Scripted_NoMovementAI
+    struct npc_training_dummy_start_zonesAI : Scripted_NoMovementAI
     {
-        npc_training_dummy_start_zonesAI(Creature* creature) : Scripted_NoMovementAI(creature) { }
+        npc_training_dummy_start_zonesAI(Creature* creature) : Scripted_NoMovementAI(creature)
+        {}
 
         uint32 resetTimer;
 
         void Reset() override
         {
-            me->SetControlled(true, UNIT_STATE_STUNNED);
-            me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+            me->SetControlled(true, UNIT_STATE_STUNNED);//disable rotate
+            me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);//imune to knock aways like blast wave
+
             resetTimer = 5000;
         }
 
@@ -244,6 +489,7 @@ public:
                 {
                     player->KilledMonsterCredit(44175);
                     player->KilledMonsterCredit(44548);
+
                 }
             }
         }
@@ -253,9 +499,9 @@ public:
             return;
         }
 
-        void SpellHit(Unit* caster, const SpellInfo* spell) override
+        void SpellHit(Unit* Caster, const SpellInfo* Spell) override
         {
-            switch (spell->Id)
+            switch (Spell->Id)
             {
                 case SPELL_CHARGE:
                 case SPELL_ASSURE:
@@ -268,7 +514,7 @@ public:
                 case SPELL_CORRUPTION_3:
                 case SPELL_PAUME_TIGRE:
                 {
-                    if (Player* player = caster->ToPlayer())
+                    if (Player* player = Caster->ToPlayer())
                     {
                         player->KilledMonsterCredit(44175);
                         player->KilledMonsterCredit(44548);
@@ -286,7 +532,7 @@ public:
                 return;
 
             if (!me->HasUnitState(UNIT_STATE_STUNNED))
-                me->SetControlled(true, UNIT_STATE_STUNNED);
+                me->SetControlled(true, UNIT_STATE_STUNNED);//disable rotate
 
             if (resetTimer <= diff)
             {
@@ -303,6 +549,10 @@ public:
         return new npc_training_dummy_start_zonesAI(creature);
     }
 };
+
+/*######
+## spell_quest_fear_no_evil
+######*/
 
 class spell_quest_fear_no_evil : public SpellScriptLoader
 {
@@ -330,7 +580,12 @@ public:
     {
         return new spell_quest_fear_no_evil_SpellScript();
     }
+
 };
+
+/*######
+## spell_quest_extincteur
+######*/
 
 enum eSpellQuestExtincteur
 {
@@ -373,13 +628,16 @@ public:
     {
         return new spell_quest_extincteur_SpellScript();
     }
+
 };
 
 void AddSC_northshire()
 {
     new npc_stormwind_infantry();
+    new npc_blackrock_battle_worg();
     RegisterCreatureAI(npc_stormwind_injured_soldier);
     new npc_training_dummy_start_zones();
     new spell_quest_fear_no_evil();
     new spell_quest_extincteur();
 }
+
