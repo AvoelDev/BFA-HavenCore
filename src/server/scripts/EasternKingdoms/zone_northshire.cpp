@@ -42,25 +42,61 @@
 #include "SpellScript.h"
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
+#include "TemporarySummon.h"
 
 enum NorthshireCreatures
 {
-    NPC_STORMWIND_INFANTRY = 49869,
-    NPC_BLACKROCK_WORG     = 49871
+    NPC_BROTHER_PAXTON      = 951,
+    NPC_STORMWIND_INFANTRY  = 49869,
+    NPC_BLACKROCK_WORG      = 49871,
+    NPC_BLACKROCK_SPY       = 49874
 };
 
 enum NorthshireSettings
 {
-    WORG_MIN_HEALTH_PCT     = 70,
-    WORG_FIGHTING_FACTION   = 232,
-    WORG_RESTORE_FACTION    = 7
+    AMBIENT_COMBAT_HEALTH_FLOOR_PCT = 85,
+    WORG_FIGHTING_FACTION           = 232,
+    WORG_RESTORE_FACTION            = 7
 };
 
 enum NorthshireSpells
 {
-    SPELL_WORG_GROWL   = 2649,
-    SPELL_RENEWED_LIFE = 93097
+    SPELL_WORG_GROWL        = 2649,
+    SPELL_PAXTON_FORTITUDE  = 13864,
+    SPELL_PAXTON_FLASH_HEAL = 38588,
+    SPELL_PAXTON_RENEW      = 8362,
+    SPELL_PAXTON_PENANCE    = 66097,
+    SPELL_SPYGLASS          = 80676,
+    SPELL_SPYING            = 92857,
+    SPELL_RENEWED_LIFE      = 93097
 };
+
+enum NorthshirePoints
+{
+    POINT_INJURED_TO_PAXTON = 1
+};
+
+static constexpr float INFANTRY_LOCAL_ASSIST_RANGE = 5.0f;
+static constexpr float WORG_INITIAL_SPAWN_RADIUS = 5.0f;
+static constexpr float WORG_INITIAL_ROAM_RADIUS = 5.0f;
+static constexpr float PAXTON_HEAL_RANGE = 20.0f;
+static constexpr float PAXTON_HEAL_THRESHOLD_PCT = 95.0f;
+static constexpr float INJURED_PAXTON_SEARCH_RANGE = 100.0f;
+
+static void ClampAmbientCombatDamage(Unit* unit, uint32& damage)
+{
+    uint64 healthFloor = unit->CountPctFromMaxHealth(AMBIENT_COMBAT_HEALTH_FLOOR_PCT);
+
+    if (unit->GetHealth() <= healthFloor)
+    {
+        damage = 0;
+        return;
+    }
+
+    uint64 maxDamage = unit->GetHealth() - healthFloor;
+    if (damage > maxDamage)
+        damage = uint32(maxDamage);
+}
 
 enum
 {
@@ -98,18 +134,65 @@ public:
             waitTime = urand(0, 2000);
         }
 
-        void DamageTaken(Unit* doneBy, uint32& damage) override
+        void DamageTaken(Unit* attacker, uint32& damage) override
         {
-            if (doneBy->ToCreature())
-                if (me->GetHealth() <= damage || me->GetHealthPct() <= 80.0f)
-                    damage = 0;
+            if (attacker && attacker->GetEntry() == NPC_BLACKROCK_WORG)
+                ClampAmbientCombatDamage(me, damage);
         }
 
-        void DamageDealt(Unit* target, uint32& damage, DamageEffectType /*damageType*/) override
+        void MoveInLineOfSight(Unit* who) override
         {
-            if (target->ToCreature())
-                if (target->GetHealth() <= damage || target->GetHealthPct() <= WORG_MIN_HEALTH_PCT)
-                    damage = 0;
+            if (!who || !wolfTarget.IsEmpty() || me->IsInCombat())
+                return;
+
+            Creature* worg = who->ToCreature();
+            if (!worg || worg->GetEntry() != NPC_BLACKROCK_WORG)
+                return;
+
+            // Retail: Infantry only assists against a normal worg when the
+            // player brings it close. It must never acquire another
+            // Infantry's staged summon.
+            if (me->GetDistance(worg) > INFANTRY_LOCAL_ASSIST_RANGE || !worg->IsInCombat())
+                return;
+
+            if (IsStagedWorg(worg))
+                return;
+
+            AttackStart(worg);
+        }
+
+        Creature* RecoverOwnedWorg()
+        {
+            std::list<Creature*> wolves;
+            me->GetCreatureListWithEntryInGrid(wolves, NPC_BLACKROCK_WORG, 100.0f);
+
+            Creature* ownedWorg = nullptr;
+
+            for (Creature* wolf : wolves)
+            {
+                TempSummon* summon = wolf->ToTempSummon();
+                if (!summon || summon->GetSummonerGUID() != me->GetGUID())
+                    continue;
+
+                if (!wolf->IsAlive())
+                {
+                    wolf->DespawnOrUnsummon();
+                    continue;
+                }
+
+                if (!ownedWorg)
+                {
+                    ownedWorg = wolf;
+                    wolfTarget = wolf->GetGUID();
+                    continue;
+                }
+
+                // Grid/AI reloads can lose wolfTarget while a summon remains.
+                // Keep one owned worg and remove stale duplicates.
+                wolf->DespawnOrUnsummon();
+            }
+
+            return ownedWorg;
         }
 
         void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override
@@ -139,14 +222,22 @@ public:
             return me->GetDistance2d(home.GetPositionX(), home.GetPositionY()) <= 1.0f;
         }
 
+        bool IsStagedWorg(Creature const* worg) const
+        {
+            if (!worg)
+                return false;
+
+            if (TempSummon const* summon = worg->ToTempSummon())
+                return !summon->GetSummonerGUID().IsEmpty();
+
+            return false;
+        }
+
         bool HandleUnassignedCombat()
         {
             if (!wolfTarget.IsEmpty())
                 return false;
 
-            // The infantry may temporarily help against another infantry's worg.
-            // A foreign worg is only a combat victim; it is never adopted as
-            // this infantry's assigned wolfTarget.
             if (Unit* victim = me->GetVictim())
             {
                 if (victim->IsAlive() && me->IsValidAttackTarget(victim))
@@ -155,16 +246,15 @@ public:
                 me->AttackStop();
             }
 
-            // A foreign target can disappear while the combat flag/threat list
-            // remains set. Clear that stale combat state before returning home.
             if (me->IsInCombat())
             {
                 me->DeleteThreatList();
                 me->CombatStop(true);
             }
 
-            // After any unassigned/assist combat, always recover to the
-            // infantry's original DB/home position before spawning its worg.
+            // Retail local-assist behavior: once a nearby natural worg has
+            // been engaged, Infantry follows it. When combat ends it returns
+            // to its own position before resuming the staged cycle.
             if (!IsAtHome())
             {
                 me->GetMotionMaster()->MoveTargetedHome();
@@ -181,7 +271,7 @@ public:
             if (HandleUnassignedCombat())
                 return;
 
-            if (waitTime && waitTime >= diff)
+            if (waitTime > diff)
             {
                 waitTime -= diff;
                 return;
@@ -195,13 +285,11 @@ public:
                 {
                     if (wolf->IsAlive())
                     {
-                        // Keep the infantry on its assigned worg. Do not force the
-                        // worg back onto the infantry here: player threat is allowed
-                        // to take over and both creatures may chase the player.
-                        if (me->GetVictim() != wolf)
+                        // The owning Infantry stays on its own worg even when a
+                        // player takes the worg's threat and drags it away.
+                        if (me->GetVictim() != wolf && wolf->IsInCombat())
                         {
                             me->getThreatManager().addThreat(wolf, 1000000.0f);
-                            wolf->getThreatManager().addThreat(me, 1000000.0f);
                             AttackStart(wolf);
                         }
                     }
@@ -213,36 +301,33 @@ public:
                 }
                 else
                     ReturnHomeAfterWorg();
+
+                return;
             }
-            else
+
+            // Do not create a second summon after a grid/AI reload.
+            if (RecoverOwnedWorg())
+                return;
+
+            float spawnDistance = frand(2.0f, WORG_INITIAL_SPAWN_RADIUS);
+            float spawnAngle = frand(0.0f, float(M_PI * 2.0f));
+            Position wolfPos = me->GetNearPosition(spawnDistance, spawnAngle);
+
+            float z = me->GetMap()->GetHeight(
+                me->GetPhaseShift(),
+                wolfPos.GetPositionX(),
+                wolfPos.GetPositionY(),
+                wolfPos.GetPositionZ());
+            wolfPos.m_positionZ = z;
+
+            if (Creature* wolf = me->SummonCreature(NPC_BLACKROCK_WORG, wolfPos))
             {
-                Position wolfPos = me->GetPosition();
-                GetPositionWithDistInFront(me, 2.5f, wolfPos);
-
-                float z = me->GetMap()->GetHeight(me->GetPhaseShift(), wolfPos.GetPositionX(), wolfPos.GetPositionY(), wolfPos.GetPositionZ());
-                wolfPos.m_positionZ = z;
-
-                if (Creature* wolf = me->SummonCreature(NPC_BLACKROCK_WORG, wolfPos))
-                {
-                    // HeronCore uses a temporary combat faction for the staged
-                    // infantry-vs-worg fight. The worg AI restores Haven's normal
-                    // faction (7) when it leaves combat.
-                    wolf->SetFaction(WORG_FIGHTING_FACTION);
-
-                    me->getThreatManager().addThreat(wolf, 1000000.0f);
-                    wolf->getThreatManager().addThreat(me, 1000000.0f);
-
-                    AttackStart(wolf);
-
-                    // One-time reciprocal start. Unlike the previous experiment,
-                    // this is not re-applied while a player owns the worg's threat.
-                    if (wolf->IsAIEnabled)
-                        wolf->AI()->AttackStart(me);
-
-                    me->SetFacingToObject(wolf);
-                    wolf->SetFacingToObject(me);
-                    wolfTarget = wolf->GetGUID();
-                }
+                // Retail: the staged worg appears a few yards around its
+                // Infantry, wanders locally for several seconds, and only
+                // then begins fighting its owning Infantry.
+                wolfTarget = wolf->GetGUID();
+                wolf->SetFaction(WORG_RESTORE_FACTION);
+                wolf->GetMotionMaster()->MoveRandom(WORG_INITIAL_ROAM_RADIUS);
             }
         }
     };
@@ -266,64 +351,92 @@ public:
     {
         npc_blackrock_battle_worgAI(Creature* creature) : ScriptedAI(creature) { }
 
-        uint32 seekTimer;
+        uint32 engageTimer;
         uint32 growlTimer;
 
         void Reset() override
         {
-            seekTimer = urand(1000, 2000);
+            engageTimer = urand(3000, 5000);
             growlTimer = urand(8500, 10000);
             me->SetFaction(WORG_RESTORE_FACTION);
+
+            if (GetOwningInfantry())
+            {
+                me->SetReactState(REACT_PASSIVE);
+                me->GetMotionMaster()->MoveRandom(WORG_INITIAL_ROAM_RADIUS);
+            }
+            else
+                me->SetReactState(REACT_AGGRESSIVE);
+        }
+
+        Creature* GetOwningInfantry() const
+        {
+            TempSummon* summon = me->ToTempSummon();
+            if (!summon)
+                return nullptr;
+
+            Creature* owner = ObjectAccessor::GetCreature(*me, summon->GetSummonerGUID());
+            if (!owner || owner->GetEntry() != NPC_STORMWIND_INFANTRY)
+                return nullptr;
+
+            return owner;
         }
 
         void DamageTaken(Unit* attacker, uint32& damage) override
         {
+            if (!attacker)
+                return;
+
             if (attacker->GetTypeId() == TYPEID_PLAYER || attacker->IsPet())
             {
-                // A player/pet attacking the staged worg takes over its threat.
-                // The infantry deliberately keeps chasing the worg.
+                // A player/pet can kill the worg normally. The owning Infantry
+                // keeps following and attacking its assigned worg.
+                me->SetReactState(REACT_AGGRESSIVE);
                 me->getThreatManager().resetAllAggro();
                 me->getThreatManager().addThreat(attacker, 1000000.0f);
                 AttackStart(attacker);
+                return;
             }
 
-            // Infantry must not kill the ambient battle worg on its own.
             if (attacker->GetEntry() == NPC_STORMWIND_INFANTRY)
-                if (me->GetHealth() <= damage || me->GetHealthPct() <= WORG_MIN_HEALTH_PCT)
-                    damage = 0;
+                ClampAmbientCombatDamage(me, damage);
         }
 
         void UpdateAI(uint32 diff) override
         {
-            if (seekTimer <= diff)
+            if (Creature* owner = GetOwningInfantry())
             {
-                if (me->IsAlive() && !me->IsInCombat())
+                if (!me->IsInCombat())
                 {
-                    Position const& home = me->GetHomePosition();
-                    if (me->GetDistance2d(home.GetPositionX(), home.GetPositionY()) <= 1.0f)
+                    if (engageTimer > diff)
                     {
-                        // Haven summons the staged worg 2.5 yards in front of the
-                        // infantry, so use 5 yards rather than HeronCore's 1 yard.
-                        if (Creature* infantry = me->FindNearestCreature(NPC_STORMWIND_INFANTRY, 5.0f, true))
-                        {
-                            me->SetFaction(WORG_FIGHTING_FACTION);
-                            me->getThreatManager().addThreat(infantry, 1.0f);
-                            infantry->getThreatManager().addThreat(me, 1.0f);
-                            AttackStart(infantry);
-                        }
+                        engageTimer -= diff;
+                        return;
                     }
-                }
 
-                seekTimer = urand(1000, 2000);
+                    // Retail: the staged worg wanders for roughly 3-5 seconds
+                    // before its own Infantry engages it. No other Infantry is
+                    // allowed to acquire this summon.
+                    engageTimer = 0;
+                    me->SetReactState(REACT_AGGRESSIVE);
+                    me->SetFaction(WORG_FIGHTING_FACTION);
+                    me->GetMotionMaster()->Clear();
+
+                    me->getThreatManager().addThreat(owner, 1000000.0f);
+                    owner->getThreatManager().addThreat(me, 1000000.0f);
+
+                    AttackStart(owner);
+
+                    if (owner->IsAIEnabled)
+                        owner->AI()->AttackStart(me);
+                }
             }
-            else
-                seekTimer -= diff;
 
             if (!UpdateVictim())
             {
-                // Outside the staged fight the creature returns to Haven's
-                // normal 49871 faction rather than remaining globally hostile.
-                me->SetFaction(WORG_RESTORE_FACTION);
+                if (!GetOwningInfantry())
+                    me->SetFaction(WORG_RESTORE_FACTION);
+
                 return;
             }
 
@@ -341,6 +454,141 @@ public:
 };
 
 /*######
+## npc_brother_paxton
+######*/
+
+// 951 - Brother Paxton
+struct npc_brother_paxton : public ScriptedAI
+{
+    npc_brother_paxton(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        // Retail ambient healing is occasional, not continuous.
+        _healTimer = urand(15000, 25000);
+
+        me->DeleteThreatList();
+        me->CombatStop(true);
+        me->SetReactState(REACT_PASSIVE);
+        me->SetWalk(false);
+        me->GetMotionMaster()->Clear();
+        me->GetMotionMaster()->MoveIdle();
+
+        if (!me->HasAura(SPELL_PAXTON_FORTITUDE))
+            DoCastSelf(SPELL_PAXTON_FORTITUDE, true);
+    }
+
+    void EnterCombat(Unit* /*who*/) override { }
+    void AttackStart(Unit* /*who*/) override { }
+    void MoveInLineOfSight(Unit* /*who*/) override { }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (_healTimer > diff)
+        {
+            _healTimer -= diff;
+            return;
+        }
+
+        _healTimer = urand(30000, 50000);
+
+        if (me->HasUnitState(UNIT_STATE_CASTING))
+            return;
+
+        std::list<Creature*> infantry;
+        me->GetCreatureListWithEntryInGrid(infantry, NPC_STORMWIND_INFANTRY, PAXTON_HEAL_RANGE);
+
+        Creature* target = nullptr;
+        for (Creature* soldier : infantry)
+        {
+            if (!soldier->IsAlive() || soldier->GetHealthPct() >= PAXTON_HEAL_THRESHOLD_PCT)
+                continue;
+
+            if (!target || soldier->GetHealthPct() < target->GetHealthPct())
+                target = soldier;
+        }
+
+        if (!target)
+            return;
+
+        me->SetFacingToObject(target);
+        Talk(0, target);
+
+        switch (urand(0, 2))
+        {
+            case 0:
+                DoCast(target, SPELL_PAXTON_FLASH_HEAL);
+                break;
+            case 1:
+                DoCast(target, SPELL_PAXTON_RENEW, true);
+                break;
+            case 2:
+                // Retail Paxton visibly attempts Penance as part of his ambient
+                // healing behavior even though the channel is not reliable.
+                DoCast(target, SPELL_PAXTON_PENANCE);
+                break;
+            default:
+                break;
+        }
+    }
+
+private:
+    uint32 _healTimer;
+};
+
+/*######
+## npc_blackrock_spy
+######*/
+
+// 49874 - Blackrock Spy
+struct npc_blackrock_spy : public ScriptedAI
+{
+    npc_blackrock_spy(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        ApplySpyState();
+    }
+
+    void EnterCombat(Unit* who) override
+    {
+        Talk(0, who);
+        me->RemoveAurasDueToSpell(SPELL_SPYGLASS);
+        me->RemoveAurasDueToSpell(SPELL_SPYING);
+    }
+
+    void JustReachedHome() override
+    {
+        ApplySpyState();
+    }
+
+    void UpdateAI(uint32 /*diff*/) override
+    {
+        if (!UpdateVictim())
+            return;
+
+        DoMeleeAttackIfReady();
+    }
+
+private:
+    void ApplySpyState()
+    {
+        // creature_addon owns the persistent retail spawn presentation.
+        // Reapply only as a fallback if an aura was removed by combat/reset.
+        if (!me->HasAura(SPELL_SPYING))
+            DoCastSelf(SPELL_SPYING, true);
+
+        if (me->GetDefaultMovementType() == IDLE_MOTION_TYPE)
+        {
+            if (!me->HasAura(SPELL_SPYGLASS))
+                DoCastSelf(SPELL_SPYGLASS, true);
+        }
+        else
+            me->RemoveAurasDueToSpell(SPELL_SPYGLASS);
+    }
+};
+
+/*######
 ## npc_stormwind_injured_soldier
 ######*/
 
@@ -353,6 +601,9 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
     {
         ScriptedAI::Reset();
 
+        // A respawn/reset must never inherit delayed revive actions from the
+        // previous interaction cycle.
+        me->GetScheduler().CancelAll();
         _clickerGuid.Clear();
 
         // 50047 is a normal DB-spawned NPC, never a player-created minion.
@@ -360,6 +611,11 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
         me->SetCreatorGUID(ObjectGuid::Empty);
 
         me->NearTeleportTo(me->GetHomePosition());
+
+        // Some historical spawn data can carry an emote state independently
+        // from the stand state. Clear it so the injured pose is controlled by
+        // UNIT_STAND_STATE_DEAD only.
+        me->SetEmoteState(EMOTE_STATE_NONE);
         me->SetStandState(UNIT_STAND_STATE_DEAD);
 
         // Fear No Evil uses the native spell-click interaction.
@@ -377,6 +633,8 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
             return;
         }
 
+        // Only one revive sequence may be active for this DB spawn.
+        me->GetScheduler().CancelAll();
         _clickerGuid = player->GetGUID();
 
         // HandleSpellClick casts 93072 before this AI callback. The legacy
@@ -391,10 +649,20 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
         me->CastSpell(me, SPELL_RENEWED_LIFE, true);
 
         me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+
+        // Clear any persistent DB/spawn emote before changing the stand state.
+        // Stand state and emote state are independent client presentation fields.
+        me->SetEmoteState(EMOTE_STATE_NONE);
         me->SetStandState(UNIT_STAND_STATE_STAND);
 
         me->GetScheduler().Schedule(1s, [this](TaskContext /*task*/)
         {
+            // Reassert the revived presentation after the spell/update cycle.
+            // This prevents a late spawn/addon state update from leaving the
+            // soldier visually prone while the revive sequence continues.
+            me->SetEmoteState(EMOTE_STATE_NONE);
+            me->SetStandState(UNIT_STAND_STATE_STAND);
+
             if (Player* player = ObjectAccessor::GetPlayer(*me, _clickerGuid))
             {
                 me->SetFacingToObject(player);
@@ -411,9 +679,38 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
 
         me->GetScheduler().Schedule(3s, [this](TaskContext /*task*/)
         {
-            me->GetMotionMaster()->MoveRandom(10.0f);
-            me->ForcedDespawn(3000, 15s);
+            // Movement should always begin from the revived standing state.
+            me->SetEmoteState(EMOTE_STATE_NONE);
+            me->SetStandState(UNIT_STAND_STATE_STAND);
+            me->SetWalk(false);
+
+            if (Creature* paxton = me->FindNearestCreature(NPC_BROTHER_PAXTON, INJURED_PAXTON_SEARCH_RANGE, true))
+            {
+                // Retail: after the revive/emote sequence, the soldier only
+                // begins running toward Brother Paxton and disappears shortly
+                // afterwards rather than completing the run.
+                Position destination = paxton->GetNearPosition(1.0f, paxton->GetRelativeAngle(me));
+                me->GetMotionMaster()->MovePoint(POINT_INJURED_TO_PAXTON, destination);
+                me->ForcedDespawn(1800, 15s);
+            }
+            else
+            {
+                // Paxton should normally be present. Preserve the same short
+                // visible run even if he cannot be found.
+                me->GetMotionMaster()->MoveRandom(10.0f);
+                me->ForcedDespawn(1800, 15s);
+            }
         });
+    }
+
+    void MovementInform(uint32 type, uint32 pointId) override
+    {
+        if (type != POINT_MOTION_TYPE || pointId != POINT_INJURED_TO_PAXTON)
+            return;
+
+        // Normally the timed despawn above happens first. This only handles
+        // the unlikely case where the soldier reaches the destination sooner.
+        me->ForcedDespawn(1, 15s);
     }
 
 private:
@@ -649,6 +946,8 @@ void AddSC_northshire()
 {
     new npc_stormwind_infantry();
     new npc_blackrock_battle_worg();
+    RegisterCreatureAI(npc_brother_paxton);
+    RegisterCreatureAI(npc_blackrock_spy);
     RegisterCreatureAI(npc_stormwind_injured_soldier);
     new npc_training_dummy_start_zones();
     new spell_quest_fear_no_evil();
