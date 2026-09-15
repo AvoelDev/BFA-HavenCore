@@ -22,6 +22,7 @@
 #include "Player.h"
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
+#include "Vehicle.h"
 
 /*######
 ## npc_hogger
@@ -484,6 +485,197 @@ struct npc_hogger_minion : public ScriptedAI
     }
 };
 
+/*######
+## Quest 35 - Further Concerns
+## npc_elwynn_stormwind_charger (42260)
+##
+## Retail-like route/timing
+## Haven-specific adaptation:
+## - use DB waypoint path 4226000 so Haven advances the route node-by-node
+## - do not root the charger (Haven MotionMaster does not update rooted units)
+## - keep scripted AI enabled while the vehicle seat applies CHARM_TYPE_VEHICLE
+## - revoke rider control after boarding while keeping the passenger attached
+######*/
+
+enum FurtherConcernsData
+{
+    EVENT_BOARD_PASSENGER = 1,
+    EVENT_PLAY_MOUNT_ANIMATION = 2,
+    EVENT_START_RIDING = 3,
+    EVENT_EJECT_PASSENGER = 4,
+    EVENT_FORCE_EJECT = 5,
+    EVENT_DESPAWN_CHARGER = 6,
+    EVENT_RIDE_TIMEOUT = 7,
+
+    STORMWIND_CHARGER_PATH = 4226000,
+    STORMWIND_CHARGER_LAST_WAYPOINT = 38,
+
+    SOUND_ID_MOUNTSPECIAL = 4066,
+
+    SPELL_EJECT_PASSENGER = 77946
+};
+
+struct npc_elwynn_stormwind_charger : public ScriptedAI
+{
+    npc_elwynn_stormwind_charger(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+        _passengerGuid.Clear();
+        _rideStarted = false;
+        _finishingRide = false;
+
+        me->SetReactState(REACT_PASSIVE);
+        me->SetWalk(false);
+        me->AddUnitState(UNIT_STATE_IGNORE_PATHFINDING);
+    }
+
+    // Vehicle 882 uses a controllable seat. Haven normally disables CreatureAI
+    // when a player receives CHARM_TYPE_VEHICLE. This taxi must keep its scripted
+    // AI active so it can drive the retail route and eject the passenger.
+    void OnCharmed(bool /*apply*/) override { }
+
+    void IsSummonedBy(Unit* summoner) override
+    {
+        if (Player* player = summoner ? summoner->ToPlayer() : nullptr)
+        {
+            _passengerGuid = player->GetGUID();
+
+            // Spell 78854 normally handles the ride. This delayed fallback makes
+            // the script resilient if the client/core summons the charger without
+            // completing the vehicle join automatically.
+            _events.ScheduleEvent(EVENT_BOARD_PASSENGER, 100);
+        }
+    }
+
+    void PassengerBoarded(Unit* passenger, int8 /*seatId*/, bool apply) override
+    {
+        Player* player = passenger ? passenger->ToPlayer() : nullptr;
+        if (!player)
+            return;
+
+        if (!apply)
+        {
+            if (!_finishingRide)
+                me->DespawnOrUnsummon(1000);
+            return;
+        }
+
+        _passengerGuid = player->GetGUID();
+
+        // Seat 0 can grant the rider client control of the vehicle. Keep the
+        // passenger attached, but remove the vehicle charm so movement remains
+        // server/AI authoritative and the player cannot steer the charger.
+        if (me->IsCharmed() && me->GetCharmerGUID() == player->GetGUID())
+            me->RemoveCharmedBy(player);
+
+        if (_rideStarted)
+            return;
+
+        _rideStarted = true;
+        me->PlayDirectSound(SOUND_ID_MOUNTSPECIAL, player);
+        _events.ScheduleEvent(EVENT_PLAY_MOUNT_ANIMATION, 200);
+    }
+
+    void MovementInform(uint32 motionType, uint32 pointId) override
+    {
+        // WaypointMovementGenerator reports its zero-based node index.
+        // Path 4226000 contains 39 nodes, so node 38 is the destination.
+        if (motionType == WAYPOINT_MOTION_TYPE && pointId == STORMWIND_CHARGER_LAST_WAYPOINT)
+            _events.ScheduleEvent(EVENT_EJECT_PASSENGER, 2000);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case EVENT_BOARD_PASSENGER:
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+                    if (!player)
+                    {
+                        me->DespawnOrUnsummon();
+                        break;
+                    }
+
+                    if (player->IsMounted())
+                        player->Dismount();
+
+                    if (!player->GetVehicle())
+                        player->EnterVehicle(me, 0);
+                    break;
+                }
+                case EVENT_PLAY_MOUNT_ANIMATION:
+                    me->HandleEmoteCommand(EMOTE_ONESHOT_MOUNT_SPECIAL);
+                    _events.ScheduleEvent(EVENT_START_RIDING, 1200);
+                    break;
+                case EVENT_START_RIDING:
+                    // Use Haven's waypoint movement generator instead of one long
+                    // MoveSmoothPath spline. This forces the charger through every
+                    // retail route node and avoids the BFA client collapsing the
+                    // scripted ground spline into a direct line to the destination.
+                    me->GetMotionMaster()->MovePath(STORMWIND_CHARGER_PATH, false);
+
+                    // Safety only: the retail route should finish long before this.
+                    _events.ScheduleEvent(EVENT_RIDE_TIMEOUT, 120000);
+                    break;
+                case EVENT_EJECT_PASSENGER:
+                    BeginRideFinish();
+                    break;
+                case EVENT_FORCE_EJECT:
+                    ForceEjectPassenger();
+                    break;
+                case EVENT_RIDE_TIMEOUT:
+                    BeginRideFinish();
+                    break;
+                case EVENT_DESPAWN_CHARGER:
+                    me->DespawnOrUnsummon();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+private:
+    void BeginRideFinish()
+    {
+        if (_finishingRide)
+            return;
+
+        _finishingRide = true;
+        _events.CancelEvent(EVENT_RIDE_TIMEOUT);
+
+        me->HandleEmoteCommand(EMOTE_ONESHOT_MOUNT_SPECIAL);
+
+        // Preserve the donor/retail behavior first.
+        DoCastSelf(SPELL_EJECT_PASSENGER, true);
+
+        // If spell 77946 does not detach the rider on this BFA branch, force the
+        // vehicle exit shortly afterwards so a failed spell can never trap a player.
+        _events.ScheduleEvent(EVENT_FORCE_EJECT, 1000);
+        _events.ScheduleEvent(EVENT_DESPAWN_CHARGER, 2000);
+    }
+
+    void ForceEjectPassenger()
+    {
+        if (Vehicle* vehicle = me->GetVehicleKit())
+            vehicle->RemoveAllPassengers();
+        else if (Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid))
+            player->ExitVehicle();
+    }
+
+    EventMap _events;
+    ObjectGuid _passengerGuid;
+    bool _rideStarted = false;
+    bool _finishingRide = false;
+};
+
 //88
 struct at_fargodeep_mine : public AreaTriggerAI
 {
@@ -528,6 +720,7 @@ void AddSC_elwyn_forest()
 {
     RegisterCreatureAI(npc_hogger);
     RegisterCreatureAI(npc_hogger_minion);
+    RegisterCreatureAI(npc_elwynn_stormwind_charger);
     RegisterAreaTriggerAI(at_fargodeep_mine);
     RegisterAreaTriggerAI(at_jasperlode_mine);
 }
