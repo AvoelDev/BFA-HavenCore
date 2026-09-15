@@ -355,6 +355,10 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
 
         _clickerGuid.Clear();
 
+        // 50047 is a normal DB-spawned NPC, never a player-created minion.
+        // Clear any stale creator left by the legacy 93072 quest spell script.
+        me->SetCreatorGUID(ObjectGuid::Empty);
+
         me->NearTeleportTo(me->GetHomePosition());
         me->SetStandState(UNIT_STAND_STATE_DEAD);
 
@@ -374,6 +378,12 @@ struct npc_stormwind_injured_soldier : public ScriptedAI
         }
 
         _clickerGuid = player->GetGUID();
+
+        // HandleSpellClick casts 93072 before this AI callback. The legacy
+        // quest spell script marks 50047 with the player's CreatedBy GUID,
+        // which makes the client display "<Player's Minion>". This creature
+        // is a normal DB spawn, never a player-created minion.
+        me->SetCreatorGUID(ObjectGuid::Empty);
 
         // 93072 is executed by npc_spellclick_spells and supplies quest credit.
         // The soldier itself owns the revive visual, matching the reference
@@ -589,7 +599,8 @@ public:
 
 enum eSpellQuestExtincteur
 {
-    NPC_FIRE = 42940,
+    QUEST_EXTINGUISHING_HOPE = 26391,
+    NPC_FIRE                  = 42940,
 };
 
 class spell_quest_extincteur : public SpellScriptLoader
@@ -603,18 +614,21 @@ public:
 
         void OnDummy(SpellEffIndex /*effIndex*/)
         {
-            Unit* caster = GetCaster();
+            Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
             Creature* fire = GetHitCreature();
 
-            if (!caster || !fire)
+            if (!player || !fire)
+                return;
+
+            // The extinguisher must only reward/consume a fire while
+            // Extinguishing Hope is actively in progress.
+            if (player->GetQuestStatus(QUEST_EXTINGUISHING_HOPE) != QUEST_STATUS_INCOMPLETE)
                 return;
 
             if (fire->GetEntry() != NPC_FIRE)
                 return;
 
-            if (Player* player = caster->ToPlayer())
-                player->KilledMonsterCredit(NPC_FIRE, fire->GetGUID());
-
+            player->KilledMonsterCredit(NPC_FIRE, fire->GetGUID());
             fire->DespawnOrUnsummon();
         }
 

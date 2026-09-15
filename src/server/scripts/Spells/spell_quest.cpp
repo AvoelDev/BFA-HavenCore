@@ -2464,7 +2464,6 @@ public:
 
             if (Creature* injuredStormwindInfantry = caster->FindNearestCreature(NPC_INJURED_STORMWIND_INFANTRY, 5.0f, true))
             {
-                injuredStormwindInfantry->SetCreatorGUID(caster->GetGUID());
                 injuredStormwindInfantry->CastSpell(injuredStormwindInfantry, SPELL_RENEWED_LIFE, true);
             }
         }
