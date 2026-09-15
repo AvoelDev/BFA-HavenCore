@@ -44,7 +44,23 @@
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
 
-#define NPC_WOLF    49871
+enum NorthshireCreatures
+{
+    NPC_STORMWIND_INFANTRY = 49869,
+    NPC_BLACKROCK_WORG     = 49871
+};
+
+enum NorthshireSettings
+{
+    WORG_MIN_HEALTH_PCT     = 70,
+    WORG_FIGHTING_FACTION   = 232,
+    WORG_RESTORE_FACTION    = 7
+};
+
+enum NorthshireSpells
+{
+    SPELL_WORG_GROWL = 2649
+};
 
 enum
 {
@@ -65,12 +81,12 @@ public:
 
     CreatureAI* GetAI(Creature* creature) const override
     {
-        return new npc_stormwind_infantryAI (creature);
+        return new npc_stormwind_infantryAI(creature);
     }
 
     struct npc_stormwind_infantryAI : public ScriptedAI
     {
-        npc_stormwind_infantryAI(Creature* creature) : ScriptedAI(creature) {}
+        npc_stormwind_infantryAI(Creature* creature) : ScriptedAI(creature) { }
 
         uint32 waitTime;
         ObjectGuid wolfTarget;
@@ -92,13 +108,78 @@ public:
         void DamageDealt(Unit* target, uint32& damage, DamageEffectType /*damageType*/) override
         {
             if (target->ToCreature())
-                if (target->GetHealth() <= damage || target->GetHealthPct() <= 70.0f)
+                if (target->GetHealth() <= damage || target->GetHealthPct() <= WORG_MIN_HEALTH_PCT)
                     damage = 0;
+        }
+
+        void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override
+        {
+            if (summon->GetGUID() == wolfTarget)
+                ReturnHomeAfterWorg();
+        }
+
+        void SummonedCreatureDespawn(Creature* summon) override
+        {
+            if (summon->GetGUID() == wolfTarget)
+                ReturnHomeAfterWorg();
+        }
+
+        void ReturnHomeAfterWorg()
+        {
+            wolfTarget = ObjectGuid::Empty;
+            me->DeleteThreatList();
+            me->CombatStop(true);
+            me->GetMotionMaster()->MoveTargetedHome();
+            waitTime = urand(10000, 20000);
+        }
+
+        bool IsAtHome() const
+        {
+            Position const& home = me->GetHomePosition();
+            return me->GetDistance2d(home.GetPositionX(), home.GetPositionY()) <= 1.0f;
+        }
+
+        bool HandleUnassignedCombat()
+        {
+            if (!wolfTarget.IsEmpty())
+                return false;
+
+            // The infantry may temporarily help against another infantry's worg.
+            // A foreign worg is only a combat victim; it is never adopted as
+            // this infantry's assigned wolfTarget.
+            if (Unit* victim = me->GetVictim())
+            {
+                if (victim->IsAlive() && me->IsValidAttackTarget(victim))
+                    return true;
+
+                me->AttackStop();
+            }
+
+            // A foreign target can disappear while the combat flag/threat list
+            // remains set. Clear that stale combat state before returning home.
+            if (me->IsInCombat())
+            {
+                me->DeleteThreatList();
+                me->CombatStop(true);
+            }
+
+            // After any unassigned/assist combat, always recover to the
+            // infantry's original DB/home position before spawning its worg.
+            if (!IsAtHome())
+            {
+                me->GetMotionMaster()->MoveTargetedHome();
+                return true;
+            }
+
+            return false;
         }
 
         void UpdateAI(uint32 diff) override
         {
             DoMeleeAttackIfReady();
+
+            if (HandleUnassignedCombat())
+                return;
 
             if (waitTime && waitTime >= diff)
             {
@@ -114,19 +195,24 @@ public:
                 {
                     if (wolf->IsAlive())
                     {
+                        // Keep the infantry on its assigned worg. Do not force the
+                        // worg back onto the infantry here: player threat is allowed
+                        // to take over and both creatures may chase the player.
                         if (me->GetVictim() != wolf)
                         {
                             me->getThreatManager().addThreat(wolf, 1000000.0f);
                             wolf->getThreatManager().addThreat(me, 1000000.0f);
-                            me->Attack(wolf, true);
+                            AttackStart(wolf);
                         }
                     }
                     else
                     {
+                        ReturnHomeAfterWorg();
                         wolf->DespawnOrUnsummon();
-                        wolfTarget = ObjectGuid::Empty;
                     }
                 }
+                else
+                    ReturnHomeAfterWorg();
             }
             else
             {
@@ -136,15 +222,120 @@ public:
                 float z = me->GetMap()->GetHeight(me->GetPhaseShift(), wolfPos.GetPositionX(), wolfPos.GetPositionY(), wolfPos.GetPositionZ());
                 wolfPos.m_positionZ = z;
 
-                if (Creature* wolf = me->SummonCreature(NPC_WOLF, wolfPos))
+                if (Creature* wolf = me->SummonCreature(NPC_BLACKROCK_WORG, wolfPos))
                 {
+                    // HeronCore uses a temporary combat faction for the staged
+                    // infantry-vs-worg fight. The worg AI restores Haven's normal
+                    // faction (7) when it leaves combat.
+                    wolf->SetFaction(WORG_FIGHTING_FACTION);
+
                     me->getThreatManager().addThreat(wolf, 1000000.0f);
                     wolf->getThreatManager().addThreat(me, 1000000.0f);
+
                     AttackStart(wolf);
+
+                    // One-time reciprocal start. Unlike the previous experiment,
+                    // this is not re-applied while a player owns the worg's threat.
+                    if (wolf->IsAIEnabled)
+                        wolf->AI()->AttackStart(me);
+
+                    me->SetFacingToObject(wolf);
                     wolf->SetFacingToObject(me);
                     wolfTarget = wolf->GetGUID();
                 }
             }
+        }
+    };
+};
+
+/*######
+## npc_blackrock_battle_worg
+######*/
+
+class npc_blackrock_battle_worg : public CreatureScript
+{
+public:
+    npc_blackrock_battle_worg() : CreatureScript("npc_blackrock_battle_worg") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_blackrock_battle_worgAI(creature);
+    }
+
+    struct npc_blackrock_battle_worgAI : public ScriptedAI
+    {
+        npc_blackrock_battle_worgAI(Creature* creature) : ScriptedAI(creature) { }
+
+        uint32 seekTimer;
+        uint32 growlTimer;
+
+        void Reset() override
+        {
+            seekTimer = urand(1000, 2000);
+            growlTimer = urand(8500, 10000);
+            me->SetFaction(WORG_RESTORE_FACTION);
+        }
+
+        void DamageTaken(Unit* attacker, uint32& damage) override
+        {
+            if (attacker->GetTypeId() == TYPEID_PLAYER || attacker->IsPet())
+            {
+                // A player/pet attacking the staged worg takes over its threat.
+                // The infantry deliberately keeps chasing the worg.
+                me->getThreatManager().resetAllAggro();
+                me->getThreatManager().addThreat(attacker, 1000000.0f);
+                AttackStart(attacker);
+            }
+
+            // Infantry must not kill the ambient battle worg on its own.
+            if (attacker->GetEntry() == NPC_STORMWIND_INFANTRY)
+                if (me->GetHealth() <= damage || me->GetHealthPct() <= WORG_MIN_HEALTH_PCT)
+                    damage = 0;
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (seekTimer <= diff)
+            {
+                if (me->IsAlive() && !me->IsInCombat())
+                {
+                    Position const& home = me->GetHomePosition();
+                    if (me->GetDistance2d(home.GetPositionX(), home.GetPositionY()) <= 1.0f)
+                    {
+                        // Haven summons the staged worg 2.5 yards in front of the
+                        // infantry, so use 5 yards rather than HeronCore's 1 yard.
+                        if (Creature* infantry = me->FindNearestCreature(NPC_STORMWIND_INFANTRY, 5.0f, true))
+                        {
+                            me->SetFaction(WORG_FIGHTING_FACTION);
+                            me->getThreatManager().addThreat(infantry, 1.0f);
+                            infantry->getThreatManager().addThreat(me, 1.0f);
+                            AttackStart(infantry);
+                        }
+                    }
+                }
+
+                seekTimer = urand(1000, 2000);
+            }
+            else
+                seekTimer -= diff;
+
+            if (!UpdateVictim())
+            {
+                // Outside the staged fight the creature returns to Haven's
+                // normal 49871 faction rather than remaining globally hostile.
+                me->SetFaction(WORG_RESTORE_FACTION);
+                return;
+            }
+
+            if (growlTimer <= diff)
+            {
+                DoCastVictim(SPELL_WORG_GROWL);
+                growlTimer = urand(8500, 10000);
+            }
+            else
+                growlTimer -= diff;
+
+            DoMeleeAttackIfReady();
         }
     };
 };
@@ -902,6 +1093,7 @@ struct at_jasperlode_mine : public AreaTriggerAI
 void AddSC_elwyn_forest()
 {
     new npc_stormwind_infantry();
+    new npc_blackrock_battle_worg();
     RegisterCreatureAI(npc_stormwind_injured_soldier);
     new npc_training_dummy_start_zones();
     new spell_quest_fear_no_evil();
