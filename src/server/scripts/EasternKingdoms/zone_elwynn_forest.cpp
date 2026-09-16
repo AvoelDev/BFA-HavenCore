@@ -16,387 +16,13 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
-/*######
-## npc_stormwind_infantry
-######*/
-
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
-#include "ScriptedGossip.h"
-#include "ScriptedEscortAI.h"
-#include "ObjectMgr.h"
-#include "ScriptMgr.h"
-#include "World.h"
-#include "PetAI.h"
-#include "PassiveAI.h"
-#include "CombatAI.h"
-#include "GameEventMgr.h"
-#include "GridNotifiers.h"
-#include "GridNotifiersImpl.h"
-#include "Cell.h"
-#include "CellImpl.h"
-#include "SpellAuras.h"
-#include "Vehicle.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
-#include "SpellScript.h"
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
-
-#define NPC_WOLF    49871
-
-enum
-{
-    QUEST_FEAR_NO_EVIL_WORGEN_WARRIOR = 28813,
-    QUEST_FEAR_NO_EVIL_ALLIANCE = 29082,
-    QUEST_FEAR_NO_EVIL_ALLIANCE_2 = 28809,
-    QUEST_FEAR_NO_EVIL_ALLIANCE_3 = 28808,
-    QUEST_FEAR_NO_EVIL_ALLIANCE_4 = 28811,
-    QUEST_FEAR_NO_EIVL_ALLIANCE_5 = 28810,
-    QUEST_FEAR_NO_EVIL_ALLIANCE_6 = 28806,
-    QUEST_FEAR_NO_EVIL_ALLIANCE_NIGHT_ELF_WARLOCK_DK = 28812,
-};
-
-class npc_stormwind_infantry : public CreatureScript
-{
-public:
-    npc_stormwind_infantry() : CreatureScript("npc_stormwind_infantry") { }
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_stormwind_infantryAI (creature);
-    }
-
-    struct npc_stormwind_infantryAI : public ScriptedAI
-    {
-        npc_stormwind_infantryAI(Creature* creature) : ScriptedAI(creature) {}
-
-        uint32 waitTime;
-        ObjectGuid wolfTarget;
-
-        void Reset() override
-        {
-            wolfTarget = ObjectGuid::Empty;
-            me->SetSheath(SHEATH_STATE_MELEE);
-            waitTime = urand(0, 2000);
-        }
-
-        void DamageTaken(Unit* doneBy, uint32& damage) override
-        {
-            if (doneBy->ToCreature())
-                if (me->GetHealth() <= damage || me->GetHealthPct() <= 80.0f)
-                    damage = 0;
-        }
-
-        void DamageDealt(Unit* target, uint32& damage, DamageEffectType /*damageType*/) override
-        {
-            if (target->ToCreature())
-                if (target->GetHealth() <= damage || target->GetHealthPct() <= 70.0f)
-                    damage = 0;
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            DoMeleeAttackIfReady();
-
-            if (waitTime && waitTime >= diff)
-            {
-                waitTime -= diff;
-                return;
-            }
-
-            waitTime = urand(10000, 20000);
-
-            if (!wolfTarget.IsEmpty())
-            {
-                if (Creature* wolf = ObjectAccessor::GetCreature(*me, wolfTarget))
-                {
-                    if (wolf->IsAlive())
-                    {
-                        if (me->GetVictim() != wolf)
-                        {
-                            me->getThreatManager().addThreat(wolf, 1000000.0f);
-                            wolf->getThreatManager().addThreat(me, 1000000.0f);
-                            me->Attack(wolf, true);
-                        }
-                    }
-                    else
-                    {
-                        wolf->DespawnOrUnsummon();
-                        wolfTarget = ObjectGuid::Empty;
-                    }
-                }
-            }
-            else
-            {
-                Position wolfPos = me->GetPosition();
-                GetPositionWithDistInFront(me, 2.5f, wolfPos);
-
-                float z = me->GetMap()->GetHeight(me->GetPhaseShift(), wolfPos.GetPositionX(), wolfPos.GetPositionY(), wolfPos.GetPositionZ());
-                wolfPos.m_positionZ = z;
-
-                if (Creature* wolf = me->SummonCreature(NPC_WOLF, wolfPos))
-                {
-                    me->getThreatManager().addThreat(wolf, 1000000.0f);
-                    wolf->getThreatManager().addThreat(me, 1000000.0f);
-                    AttackStart(wolf);
-                    wolf->SetFacingToObject(me);
-                    wolfTarget = wolf->GetGUID();
-                }
-            }
-        }
-    };
-};
-
-/*######
-## npc_stormwind_injured_soldier
-######*/
-
-//50047
-struct npc_stormwind_injured_soldier : public ScriptedAI
-{
-    npc_stormwind_injured_soldier(Creature* creature) : ScriptedAI(creature) { }
-
-    void Reset() override
-    {
-        ScriptedAI::Reset();
-        me->NearTeleportTo(me->GetHomePosition());
-        me->SetStandState(UNIT_STAND_STATE_DEAD);
-    }
-
-    void sGossipHello(Player* player) override
-    {
-        CloseGossipMenuFor(player);
-        if (player->GetQuestStatus(QUEST_FEAR_NO_EVIL_WORGEN_WARRIOR) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_2) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_3) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_4) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(QUEST_FEAR_NO_EIVL_ALLIANCE_5) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_6) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(QUEST_FEAR_NO_EVIL_ALLIANCE_NIGHT_ELF_WARLOCK_DK) == QUEST_STATUS_INCOMPLETE)
-        {
-            me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-            player->CastSpell(me, 93072, true);
-            me->SetStandState(UNIT_STAND_STATE_STAND);
-            me->GetScheduler().Schedule(1s, [this, player](TaskContext /*task*/)
-            {
-                me->SetFacingToObject(player);
-                me->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE); 
-                Talk(0);
-            });
-            me->GetScheduler().Schedule(3s, [this](TaskContext /*task*/)
-            {
-                me->GetMotionMaster()->MoveRandom(10.0f);
-                me->ForcedDespawn(3000, 15s);
-            });
-        }
-
-    }
-};
-
-/*######
-## npc_training_dummy_elwynn
-######*/
-
-enum eTrainingDummySpells
-{
-    SPELL_CHARGE        = 100,
-    SPELL_AUTORITE      = 105361, // OnDamage
-    SPELL_ASSURE        = 56641,
-    SPELL_EVISCERATION  = 2098,
-    SPELL_MOT_DOULEUR_1 = 589,
-    SPELL_MOT_DOULEUR_2 = 124464, // Je ne sais pas si un des deux est le bon
-    SPELL_NOVA          = 122,
-    SPELL_CORRUPTION_1  = 172,
-    SPELL_CORRUPTION_2  = 87389,
-    SPELL_CORRUPTION_3  = 131740,
-    SPELL_PAUME_TIGRE   = 100787
-};
-
-class npc_training_dummy_start_zones : public CreatureScript
-{
-public:
-    npc_training_dummy_start_zones() : CreatureScript("npc_training_dummy_start_zones") { }
-
-    struct npc_training_dummy_start_zonesAI : Scripted_NoMovementAI
-    {
-        npc_training_dummy_start_zonesAI(Creature* creature) : Scripted_NoMovementAI(creature)
-        {}
-
-        uint32 resetTimer;
-
-        void Reset() override
-        {
-            me->SetControlled(true, UNIT_STATE_STUNNED);//disable rotate
-            me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);//imune to knock aways like blast wave
-
-            resetTimer = 5000;
-        }
-
-        void EnterEvadeMode(EvadeReason /*why*/) override
-        {
-            if (!_EnterEvadeMode())
-                return;
-
-            Reset();
-        }
-
-        void MoveInLineOfSight(Unit* p_Who) override
-        {
-            if (!me->IsWithinDistInMap(p_Who, 25.f) && p_Who->IsInCombat())
-            {
-                me->RemoveAllAurasByCaster(p_Who->GetGUID());
-                me->getHostileRefManager().deleteReference(p_Who);
-            }
-        }
-
-        void DamageTaken(Unit* doneBy, uint32& damage) override
-        {
-            resetTimer = 5000;
-            damage = 0;
-
-            if (doneBy->HasAura(SPELL_AUTORITE))
-            {
-                if (Player* player = doneBy->ToPlayer())
-                {
-                    player->KilledMonsterCredit(44175);
-                    player->KilledMonsterCredit(44548);
-
-                }
-            }
-        }
-
-        void EnterCombat(Unit* /*who*/) override
-        {
-            return;
-        }
-
-        void SpellHit(Unit* Caster, const SpellInfo* Spell) override
-        {
-            switch (Spell->Id)
-            {
-                case SPELL_CHARGE:
-                case SPELL_ASSURE:
-                case SPELL_EVISCERATION:
-                case SPELL_MOT_DOULEUR_1:
-                case SPELL_MOT_DOULEUR_2:
-                case SPELL_NOVA:
-                case SPELL_CORRUPTION_1:
-                case SPELL_CORRUPTION_2:
-                case SPELL_CORRUPTION_3:
-                case SPELL_PAUME_TIGRE:
-                {
-                    if (Player* player = Caster->ToPlayer())
-                    {
-                        player->KilledMonsterCredit(44175);
-                        player->KilledMonsterCredit(44548);
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (!me->HasUnitState(UNIT_STATE_STUNNED))
-                me->SetControlled(true, UNIT_STATE_STUNNED);//disable rotate
-
-            if (resetTimer <= diff)
-            {
-                EnterEvadeMode(EVADE_REASON_OTHER);
-                resetTimer = 5000;
-            }
-            else
-                resetTimer -= diff;
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_training_dummy_start_zonesAI(creature);
-    }
-};
-
-/*######
-## spell_quest_fear_no_evil
-######*/
-
-class spell_quest_fear_no_evil : public SpellScriptLoader
-{
-public:
-    spell_quest_fear_no_evil() : SpellScriptLoader("spell_quest_fear_no_evil") { }
-
-    class spell_quest_fear_no_evil_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_quest_fear_no_evil_SpellScript);
-
-        void OnDummy(SpellEffIndex /*effIndex*/)
-        {
-            if (GetCaster())
-                if (GetCaster()->ToPlayer())
-                    GetCaster()->ToPlayer()->KilledMonsterCredit(50047);
-        }
-
-        void Register() override
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_quest_fear_no_evil_SpellScript::OnDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_quest_fear_no_evil_SpellScript();
-    }
-
-};
-
-/*######
-## spell_quest_extincteur
-######*/
-
-enum eSpellQuestExtincteur
-{
-    NPC_FIRE = 42940,
-};
-
-class spell_quest_extincteur : public SpellScriptLoader
-{
-public:
-    spell_quest_extincteur() : SpellScriptLoader("spell_quest_extincteur") { }
-
-    class spell_quest_extincteur_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_quest_extincteur_SpellScript);
-
-        void OnDummy(SpellEffIndex /*effIndex*/)
-        {
-            Unit* caster = GetCaster();
-            Creature* fire = GetHitCreature();
-
-            if (!caster || !fire)
-                return;
-
-            if (fire->GetEntry() != NPC_FIRE)
-                return;
-
-            if (Player* player = caster->ToPlayer())
-                player->KilledMonsterCredit(NPC_FIRE, fire->GetGUID());
-
-            fire->DespawnOrUnsummon();
-        }
-
-        void Register() override
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_quest_extincteur_SpellScript::OnDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_quest_extincteur_SpellScript();
-    }
-
-};
+#include "Vehicle.h"
 
 /*######
 ## npc_hogger
@@ -859,6 +485,197 @@ struct npc_hogger_minion : public ScriptedAI
     }
 };
 
+/*######
+## Quest 35 - Further Concerns
+## npc_elwynn_stormwind_charger (42260)
+##
+## Retail-like route/timing
+## Haven-specific adaptation:
+## - use DB waypoint path 4226000 so Haven advances the route node-by-node
+## - do not root the charger (Haven MotionMaster does not update rooted units)
+## - keep scripted AI enabled while the vehicle seat applies CHARM_TYPE_VEHICLE
+## - revoke rider control after boarding while keeping the passenger attached
+######*/
+
+enum FurtherConcernsData
+{
+    EVENT_BOARD_PASSENGER = 1,
+    EVENT_PLAY_MOUNT_ANIMATION = 2,
+    EVENT_START_RIDING = 3,
+    EVENT_EJECT_PASSENGER = 4,
+    EVENT_FORCE_EJECT = 5,
+    EVENT_DESPAWN_CHARGER = 6,
+    EVENT_RIDE_TIMEOUT = 7,
+
+    STORMWIND_CHARGER_PATH = 4226000,
+    STORMWIND_CHARGER_LAST_WAYPOINT = 38,
+
+    SOUND_ID_MOUNTSPECIAL = 4066,
+
+    SPELL_EJECT_PASSENGER = 77946
+};
+
+struct npc_elwynn_stormwind_charger : public ScriptedAI
+{
+    npc_elwynn_stormwind_charger(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+        _passengerGuid.Clear();
+        _rideStarted = false;
+        _finishingRide = false;
+
+        me->SetReactState(REACT_PASSIVE);
+        me->SetWalk(false);
+        me->AddUnitState(UNIT_STATE_IGNORE_PATHFINDING);
+    }
+
+    // Vehicle 882 uses a controllable seat. Haven normally disables CreatureAI
+    // when a player receives CHARM_TYPE_VEHICLE. This taxi must keep its scripted
+    // AI active so it can drive the retail route and eject the passenger.
+    void OnCharmed(bool /*apply*/) override { }
+
+    void IsSummonedBy(Unit* summoner) override
+    {
+        if (Player* player = summoner ? summoner->ToPlayer() : nullptr)
+        {
+            _passengerGuid = player->GetGUID();
+
+            // Spell 78854 normally handles the ride. This delayed fallback makes
+            // the script resilient if the client/core summons the charger without
+            // completing the vehicle join automatically.
+            _events.ScheduleEvent(EVENT_BOARD_PASSENGER, 100);
+        }
+    }
+
+    void PassengerBoarded(Unit* passenger, int8 /*seatId*/, bool apply) override
+    {
+        Player* player = passenger ? passenger->ToPlayer() : nullptr;
+        if (!player)
+            return;
+
+        if (!apply)
+        {
+            if (!_finishingRide)
+                me->DespawnOrUnsummon(1000);
+            return;
+        }
+
+        _passengerGuid = player->GetGUID();
+
+        // Seat 0 can grant the rider client control of the vehicle. Keep the
+        // passenger attached, but remove the vehicle charm so movement remains
+        // server/AI authoritative and the player cannot steer the charger.
+        if (me->IsCharmed() && me->GetCharmerGUID() == player->GetGUID())
+            me->RemoveCharmedBy(player);
+
+        if (_rideStarted)
+            return;
+
+        _rideStarted = true;
+        me->PlayDirectSound(SOUND_ID_MOUNTSPECIAL, player);
+        _events.ScheduleEvent(EVENT_PLAY_MOUNT_ANIMATION, 200);
+    }
+
+    void MovementInform(uint32 motionType, uint32 pointId) override
+    {
+        // WaypointMovementGenerator reports its zero-based node index.
+        // Path 4226000 contains 39 nodes, so node 38 is the destination.
+        if (motionType == WAYPOINT_MOTION_TYPE && pointId == STORMWIND_CHARGER_LAST_WAYPOINT)
+            _events.ScheduleEvent(EVENT_EJECT_PASSENGER, 2000);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case EVENT_BOARD_PASSENGER:
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+                    if (!player)
+                    {
+                        me->DespawnOrUnsummon();
+                        break;
+                    }
+
+                    if (player->IsMounted())
+                        player->Dismount();
+
+                    if (!player->GetVehicle())
+                        player->EnterVehicle(me, 0);
+                    break;
+                }
+                case EVENT_PLAY_MOUNT_ANIMATION:
+                    me->HandleEmoteCommand(EMOTE_ONESHOT_MOUNT_SPECIAL);
+                    _events.ScheduleEvent(EVENT_START_RIDING, 1200);
+                    break;
+                case EVENT_START_RIDING:
+                    // Use Haven's waypoint movement generator instead of one long
+                    // MoveSmoothPath spline. This forces the charger through every
+                    // retail route node and avoids the BFA client collapsing the
+                    // scripted ground spline into a direct line to the destination.
+                    me->GetMotionMaster()->MovePath(STORMWIND_CHARGER_PATH, false);
+
+                    // Safety only: the retail route should finish long before this.
+                    _events.ScheduleEvent(EVENT_RIDE_TIMEOUT, 120000);
+                    break;
+                case EVENT_EJECT_PASSENGER:
+                    BeginRideFinish();
+                    break;
+                case EVENT_FORCE_EJECT:
+                    ForceEjectPassenger();
+                    break;
+                case EVENT_RIDE_TIMEOUT:
+                    BeginRideFinish();
+                    break;
+                case EVENT_DESPAWN_CHARGER:
+                    me->DespawnOrUnsummon();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+private:
+    void BeginRideFinish()
+    {
+        if (_finishingRide)
+            return;
+
+        _finishingRide = true;
+        _events.CancelEvent(EVENT_RIDE_TIMEOUT);
+
+        me->HandleEmoteCommand(EMOTE_ONESHOT_MOUNT_SPECIAL);
+
+        // Preserve the donor/retail behavior first.
+        DoCastSelf(SPELL_EJECT_PASSENGER, true);
+
+        // If spell 77946 does not detach the rider on this BFA branch, force the
+        // vehicle exit shortly afterwards so a failed spell can never trap a player.
+        _events.ScheduleEvent(EVENT_FORCE_EJECT, 1000);
+        _events.ScheduleEvent(EVENT_DESPAWN_CHARGER, 2000);
+    }
+
+    void ForceEjectPassenger()
+    {
+        if (Vehicle* vehicle = me->GetVehicleKit())
+            vehicle->RemoveAllPassengers();
+        else if (Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid))
+            player->ExitVehicle();
+    }
+
+    EventMap _events;
+    ObjectGuid _passengerGuid;
+    bool _rideStarted = false;
+    bool _finishingRide = false;
+};
+
 //88
 struct at_fargodeep_mine : public AreaTriggerAI
 {
@@ -901,13 +718,9 @@ struct at_jasperlode_mine : public AreaTriggerAI
 
 void AddSC_elwyn_forest()
 {
-    new npc_stormwind_infantry();
-    RegisterCreatureAI(npc_stormwind_injured_soldier);
-    new npc_training_dummy_start_zones();
-    new spell_quest_fear_no_evil();
-    new spell_quest_extincteur();
     RegisterCreatureAI(npc_hogger);
     RegisterCreatureAI(npc_hogger_minion);
+    RegisterCreatureAI(npc_elwynn_stormwind_charger);
     RegisterAreaTriggerAI(at_fargodeep_mine);
     RegisterAreaTriggerAI(at_jasperlode_mine);
 }

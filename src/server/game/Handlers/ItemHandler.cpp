@@ -28,8 +28,79 @@
 #include "ObjectMgr.h"
 #include "Opcodes.h"
 #include "Player.h"
+#include "QuestDef.h"
+#include "ScriptMgr.h"
 #include "SpellMgr.h"
+#include "World.h"
 #include "WorldSession.h"
+
+namespace
+{
+void AbandonQuestsMissingDestroyedSourceItem(Player* player, uint32 itemEntry)
+{
+    if (!player || !itemEntry)
+        return;
+
+    for (uint8 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
+    {
+        uint32 questId = player->GetQuestSlotQuestId(slot);
+        if (!questId)
+            continue;
+
+        Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
+        if (!quest)
+            continue;
+
+        // Only quest-provided/source items should cause abandonment when
+        // explicitly destroyed by the player. Normal quest objective items
+        // must not abandon their quest.
+        if (quest->GetSrcItemId() != itemEntry || !quest->GetSrcItemCount())
+            continue;
+
+        // If enough copies remain to satisfy the quest's provided-item count,
+        // the quest can stay active (important for stacked source items).
+        if (player->GetItemCount(itemEntry, false) >= quest->GetSrcItemCount())
+            continue;
+
+        QuestStatus oldStatus = player->GetQuestStatus(questId);
+
+        if (quest->HasSpecialFlag(QUEST_SPECIAL_FLAGS_TIMED))
+            player->RemoveTimedQuest(questId);
+
+        if (quest->HasFlag(QUEST_FLAGS_FLAGS_PVP))
+        {
+            player->pvpInfo.IsHostile = player->pvpInfo.IsInHostileArea || player->HasPvPForcingQuest();
+            player->UpdatePvPState();
+        }
+
+        // The item that triggered this path has already been destroyed.
+        // Remove any remaining copies of the quest source item, then perform
+        // the same quest-state cleanup as the normal quest-abandon handler.
+        player->TakeQuestSourceItem(questId, false);
+        player->AbandonQuest(questId);
+        player->RemoveActiveQuest(quest);
+        player->RemoveCriteriaTimer(CRITERIA_TIMED_TYPE_QUEST, questId);
+
+        TC_LOG_INFO("network", "%s abandoned quest %u after destroying provided item %u",
+            player->GetGUID().ToString().c_str(), questId, itemEntry);
+
+        if (sWorld->getBoolConfig(CONFIG_QUEST_ENABLE_QUEST_TRACKER))
+        {
+            CharacterDatabasePreparedStatement* stmt =
+                CharacterDatabase.GetPreparedStatement(CHAR_UPD_QUEST_TRACK_ABANDON_TIME);
+            stmt->setUInt32(0, questId);
+            stmt->setUInt64(1, player->GetGUID().GetCounter());
+            CharacterDatabase.Execute(stmt);
+        }
+
+        sScriptMgr->OnQuestStatusChange(player, questId);
+        sScriptMgr->OnQuestStatusChange(player, quest, oldStatus, QUEST_STATUS_NONE);
+
+        player->SetQuestSlot(slot, 0);
+        player->UpdateCriteria(CRITERIA_TYPE_QUEST_ABANDONED, 1);
+    }
+}
+}
 
 void WorldSession::HandleSplitItemOpcode(WorldPackets::Item::SplitItem& splitItem)
 {
@@ -342,6 +413,8 @@ void WorldSession::HandleDestroyItemOpcode(WorldPackets::Item::DestroyItem& dest
         return;
     }
 
+    uint32 destroyedItemEntry = item->GetEntry();
+
     if (destroyItem.Count)
     {
         uint32 i_count = destroyItem.Count;
@@ -349,6 +422,8 @@ void WorldSession::HandleDestroyItemOpcode(WorldPackets::Item::DestroyItem& dest
     }
     else
         _player->DestroyItem(destroyItem.ContainerId, destroyItem.SlotNum, true);
+
+    AbandonQuestsMissingDestroyedSourceItem(_player, destroyedItemEntry);
 }
 
 void WorldSession::HandleReadItem(WorldPackets::Item::ReadItem& readItem)
