@@ -246,7 +246,7 @@ public:
             return true;
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             SelectSoundAndText(me, 1);
             events.ScheduleEvent(EVENT_SHOCKWAVE, TIMER_SHOCKWAVE);
@@ -369,7 +369,7 @@ public:
                 case EVENT_UPHEAVAL:
                 {
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 
                     targets.remove_if(checkSpec());
 

@@ -130,10 +130,10 @@ private:
         me->AddAura(AURA_OVERRIDE_POWER_COLOR_ENTROPIC);
 	}
 
-	void EnterCombat(Unit* /*unit*/) override
+	void JustEngagedWith(Unit* /*unit*/) override
 	{
         me->RemoveAura(OBSIDIAN_SKIN_VISUAL);
-		_EnterCombat();
+		_JustEngagedWith();
 		Talk(SAY_AGGRO);
 		DoCast(PERIODIC_ENERGY_GAIN);
         this->phase = 1;
@@ -162,7 +162,7 @@ private:
 	{
 		if (spellInfo->Id == SHADOW_CLAWS)
 		{
-			if (Unit* tar = SelectTarget(SELECT_TARGET_NEAREST, 0, 30.0f, true))
+			if (Unit* tar = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 30.0f, true))
 			{
 				me->AddAura(SHADOW_WOUNDS_PERIODIC, tar);				
 			}
@@ -181,14 +181,14 @@ private:
 			if (IsMythic())
 			{
 				UnitList tarlist;
-				SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 500.0f, true);
+				SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 				for (Unit* tar : tarlist)
 				me->CastSpell(tar, DEVOUR_MAGIC_MARK);
 			}
 			else
 			{
 				UnitList tarlist;
-				SelectTargetList(tarlist, 2, SELECT_TARGET_RANDOM, 500.0f, true);
+				SelectTargetList(tarlist, 2, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 				for (Unit* tar : tarlist)
 				me->CastSpell(tar, DEVOUR_MAGIC_MARK);
 			}
@@ -203,7 +203,7 @@ private:
              //instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, summon);
 			 summon->SetNativeDisplayId(93869, 2.5f);
 			 summon->AddAura(DARK_AEGIS);
-             summon->AI()->EnterCombat(nullptr);
+             summon->AI()->JustEngagedWith(nullptr);
 			 summon->AI()->DoZoneInCombat();
 			 break;
 		}
@@ -310,7 +310,7 @@ private:
 		case EVENT_CONSUMING_SHADOWS:
 		{
 			UnitList tarlist;
-			SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 500.0f, true);
+			SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 			for (Unit* tar : tarlist)
 			DoCast(tar, CONSUMING_SHADOWS);
 			events.Repeat(15s);
@@ -353,7 +353,7 @@ private:
 		}	
 		case EVENT_BLACK_WINGS:
 		{
-			if (Unit* tar = SelectTarget(SELECT_TARGET_NEAREST, 0, 40.0f, true))
+			if (Unit* tar = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 40.0f, true))
 			{		
 				me->SetFacingToObject(tar, true);
 				DoCast(tar, BLACK_WINGS);
@@ -364,7 +364,7 @@ private:
 		case EVENT_DRAIN_ESSENCE:
 		{
 			UnitList tarlist;
-			SelectTargetList(tarlist, 2, SELECT_TARGET_RANDOM, 500.0f, true);
+			SelectTargetList(tarlist, 2, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 			for (Unit* tar : tarlist)
 			{
 				DoCast(tar, DRAIN_ESSENCE_PERIODIC);
@@ -374,7 +374,7 @@ private:
 		case EVENT_ANCIENT_CURSE:
 		{
 			UnitList tarlist;
-			SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 500.0f, true);
+			SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 			for (Unit* tar : tarlist)
 			{
 				DoCast(tar, ANCIENT_CURSE);

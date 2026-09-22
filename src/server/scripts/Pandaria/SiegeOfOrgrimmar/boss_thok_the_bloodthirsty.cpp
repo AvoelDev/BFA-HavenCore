@@ -590,7 +590,7 @@ class boss_thok_the_bloodthirsty : public CreatureScript
                 m_IsBatsReleased = false;
             }
 
-            void EnterCombat(Unit* /*unit*/) override
+            void JustEngagedWith(Unit* /*unit*/) override
             {
                 m_Phase = PHASE_NORMAL;
 
@@ -921,7 +921,7 @@ class boss_thok_the_bloodthirsty : public CreatureScript
             {
                 BloodiedSelector selector;
                 std::list<Unit*> targets;
-                SelectTargetList(targets, selector, 25, SELECT_TARGET_RANDOM);
+                SelectTargetList(targets, 25, SELECT_TARGET_RANDOM, 0, selector);
 
                 for (Unit* target : targets)
                     me->AddAura(SPELL_BLOODIED, target);
@@ -1418,7 +1418,7 @@ class npc_thok_the_bloodthirsty_starved_yeti : public CreatureScript
                 m_NextWreckingBallPos = wreckingBallPos[0];
             }
 
-            void EnterCombat(Unit* /*unit*/) override
+            void JustEngagedWith(Unit* /*unit*/) override
             {
                 events.ScheduleEvent(EVENT_WRECKING_BALL, TIMER_WRECKING_BALL_FIRST);
             }

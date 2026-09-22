@@ -189,7 +189,7 @@ class KelThuzadCharmedPlayerAI : public SimpleCharmedPlayerAI
             {
                 if (Unit* target = charmer->AI()->SelectTarget(SELECT_TARGET_RANDOM, 0, CharmedPlayerTargetSelectPred()))
                     return target;
-                if (Unit* target = charmer->AI()->SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, -SPELL_CHAINS))
+                if (Unit* target = charmer->AI()->SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, true, -SPELL_CHAINS))
                     return target;
             }
             return nullptr;
@@ -283,10 +283,9 @@ public:
                 {
                     Talk(SAY_CHAINS);
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 3, SELECT_TARGET_RANDOM, 0.0f, true);
+                    SelectTargetList(targets, 3, SELECT_TARGET_RANDOM, 0, 0.0f, true, false);
                     for (Unit* target : targets)
-                        if (me->GetVictim() != target) // skip MT
-                            DoCast(target, SPELL_CHAINS);
+                        DoCast(target, SPELL_CHAINS);
                 }
             }
 
@@ -426,7 +425,7 @@ public:
                             me->CastStop();
                             events.SetPhase(PHASE_TWO);
                             me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC));
-                            me->getThreatManager().resetAllAggro();
+                            ResetThreatList();
                             me->SetReactState(REACT_AGGRESSIVE);
                             Talk(EMOTE_PHASE_TWO);
 
@@ -599,7 +598,7 @@ struct npc_kelthuzad_minionAI : public ScriptedAI
                 kelThuzad->AI()->EnterEvadeMode(EVADE_REASON_OTHER);
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             _movementTimer = 0; // once it's zero, it'll never get checked again
             if (!me->HasReactState(REACT_PASSIVE))
@@ -621,7 +620,7 @@ struct npc_kelthuzad_minionAI : public ScriptedAI
                 }
             me->SetReactState(REACT_AGGRESSIVE);
             AttackStart(who);
-            ScriptedAI::EnterCombat(who);
+            ScriptedAI::JustEngagedWith(who);
         }
 
         void AttackStart(Unit* who) override
@@ -638,7 +637,7 @@ struct npc_kelthuzad_minionAI : public ScriptedAI
             }
 
             if (me->CanStartAttack(who, false) && me->GetDistance2d(who) <= MINION_AGGRO_DISTANCE)
-                EnterCombat(who);
+                JustEngagedWith(who);
         }
 
         void SetData(uint32 data, uint32 value) override

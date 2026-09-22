@@ -76,7 +76,7 @@ void CombatAI::JustDied(Unit* killer)
             me->CastSpell(killer, *i, true);
 }
 
-void CombatAI::EnterCombat(Unit* who)
+void CombatAI::JustEngagedWith(Unit* who)
 {
     for (SpellVct::iterator i = spells.begin(); i != spells.end(); ++i)
     {
@@ -131,7 +131,7 @@ bool CombatAI::UpdateVictim()
 
         return me->GetVictim() != nullptr;
     }
-    else if (me->getThreatManager().isThreatListEmpty())
+    else if (me->GetThreatManager().IsThreatListEmpty())
     {
         EnterEvadeMode(EVADE_REASON_NO_HOSTILES);
         return false;
@@ -200,7 +200,7 @@ void CasterAI::InitializeAI()
         m_attackDist = MELEE_RANGE;
 }
 
-void CasterAI::EnterCombat(Unit* who)
+void CasterAI::JustEngagedWith(Unit* who)
 {
     if (spells.empty())
         return;

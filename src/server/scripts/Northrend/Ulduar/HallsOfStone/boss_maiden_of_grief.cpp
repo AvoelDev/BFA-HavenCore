@@ -71,9 +71,9 @@ class boss_maiden_of_grief : public CreatureScript
                 instance->DoStopCriteriaTimer(CRITERIA_TIMED_TYPE_EVENT, ACHIEV_GOOD_GRIEF_START_EVENT);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 Talk(SAY_AGGRO);
 
                 instance->DoStartCriteriaTimer(CRITERIA_TIMED_TYPE_EVENT, ACHIEV_GOOD_GRIEF_START_EVENT);
@@ -115,7 +115,7 @@ class boss_maiden_of_grief : public CreatureScript
                             events.ScheduleEvent(EVENT_STORM_OF_GRIEF, urand(15000, 20000));
                             break;
                         case EVENT_SHOCK_OF_SORROW:
-                            DoResetThreat();
+                            ResetThreatList();
                             Talk(SAY_STUN);
                             DoCastAOE(SPELL_SHOCK_OF_SORROW);
                             events.ScheduleEvent(EVENT_SHOCK_OF_SORROW, urand(20000, 30000));

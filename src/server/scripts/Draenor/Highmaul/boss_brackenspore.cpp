@@ -355,9 +355,9 @@ class boss_brackenspore : public CreatureScript
                 }
             }
 
-            void EnterCombat(Unit* /*attacker*/) override
+            void JustEngagedWith(Unit* /*attacker*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
 
                 m_Events.ScheduleEvent(eEvents::EventNecroticBreath, 30 * TimeConstants::IN_MILLISECONDS);
                 m_Events.ScheduleEvent(eEvents::EventBerserker, 600 * TimeConstants::IN_MILLISECONDS);
@@ -574,13 +574,13 @@ class boss_brackenspore : public CreatureScript
                         m_Events.ScheduleEvent(eEvents::EventSpecialAbility, 20 * TimeConstants::IN_MILLISECONDS);
                         break;
                     case eEvents::EventScheduleEnergy:
-                        if (Unit* target = SelectTarget(SelectAggroTarget::SELECT_TARGET_TOPAGGRO))
+                        if (Unit* target = SelectTarget(SelectAggroTarget::SELECT_TARGET_MAXTHREAT))
                             AttackStart(target);
                         me->CastSpell(me, eSpells::EnergyRegen, true);
                         me->GetMotionMaster()->Clear();
                         break;
                     case eEvents::EventRot:
-                        if (Unit* target = SelectTarget(SelectAggroTarget::SELECT_TARGET_TOPAGGRO))
+                        if (Unit* target = SelectTarget(SelectAggroTarget::SELECT_TARGET_MAXTHREAT))
                             me->CastSpell(target, eSpells::RotDot, true);
                         m_Events.ScheduleEvent(eEvents::EventRot, 10 * TimeConstants::IN_MILLISECONDS);
                         break;
@@ -801,7 +801,7 @@ class npc_highmaul_spore_shooter : public CreatureScript
                 m_Events.Reset();
             }
 
-            void EnterCombat(Unit* /*attacker*/) override
+            void JustEngagedWith(Unit* /*attacker*/) override
             {
                 m_Events.ScheduleEvent(eEvent::EventSporeShot, urand(100, 1500));
             }

@@ -119,21 +119,21 @@ public:
             events.ScheduleEvent(EVENT_FORGE_CAST, 2 * IN_MILLISECONDS, 0, PHASE_INTRO);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             Talk(SAY_AGGRO);
             events.SetPhase(PHASE_NORMAL);
             events.ScheduleEvent(EVENT_PAUSE,            3.5 * IN_MILLISECONDS, 0, PHASE_NORMAL);
             events.ScheduleEvent(EVENT_SHATTERING_STOMP,   0 * IN_MILLISECONDS, 0, PHASE_NORMAL);
             events.ScheduleEvent(EVENT_SHATTER,            5 * IN_MILLISECONDS, 0, PHASE_NORMAL);
-            _EnterCombat();
+            _JustEngagedWith();
         }
 
         void AttackStart(Unit* who) override
         {
             if (me->Attack(who, true))
             {
-                me->AddThreat(who, 0.0f);
+                AddThreat(who, 0.0f);
                 me->SetInCombatWith(who);
                 who->SetInCombatWith(me);
 
@@ -326,7 +326,7 @@ public:
                     // 4 - Wait for delay to expire
                     if (m_uiDelay_Timer <= diff)
                     {
-                        if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0))
                         {
                             me->SetReactState(REACT_AGGRESSIVE);
                             me->SetInCombatWith(target);
@@ -408,7 +408,7 @@ public:
         {
             if (me->Attack(who, true))
             {
-                me->AddThreat(who, 0.0f);
+                AddThreat(who, 0.0f);
                 me->SetInCombatWith(who);
                 who->SetInCombatWith(me);
 

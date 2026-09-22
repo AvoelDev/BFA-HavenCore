@@ -189,9 +189,9 @@ struct boss_ilgynoth : public BossAI
           //  at->Despawn();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
         me->SummonCreature(NPC_EYE_OF_ILGYNOTH, true);
         me->SummonCreature(NPC_DOMINATOR_TENTACLE, true);
         DoCast(me, SPELL_DARKEST_NIGHTMARE_AT, true);
@@ -371,7 +371,7 @@ struct boss_ilgynoth : public BossAI
                     TeleportPlayer();
 
                 bool closestPlayers = false;
-                std::list<HostileReference*> threatlist = me->getThreatManager().getThreatList();
+                std::list<HostileReference*> threatlist = me->GetThreatManager().getThreatList();
                 for (auto ref : threatlist)
                 {
                   if (auto target = me->GetUnit(*me, ref->getUnitGuid()))
@@ -421,7 +421,7 @@ struct npc_eye_of_ilgynoth : public ScriptedAI
 
     void Reset() override {}
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         DoZoneInCombat();
         events.RescheduleEvent(1, 2000);
@@ -473,8 +473,8 @@ struct npc_eye_of_ilgynoth : public ScriptedAI
             case 1:
                 if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 120.0f, true))
                 {
-                    DoResetThreat();
-                    me->AddThreat(pTarget, 100000.0f);
+                    ResetThreatList();
+                    me->GetThreatManager().AddThreat(pTarget, 100000.0f);
                     DoCast(pTarget, SPELL_NIGHTMARE_GAZE);
                 }
                 events.RescheduleEvent(1, 2000);
@@ -529,7 +529,7 @@ struct npc_ilgynoth_tentacles : public ScriptedAI
 
     void Reset() override {}
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         DoZoneInCombat();
 
@@ -596,7 +596,7 @@ struct npc_ilgynoth_tentacles : public ScriptedAI
             {
                 rupturingRoarTimer = 3000;
 
-                if (auto target = SelectTarget(SELECT_TARGET_NEAREST, 0, 100.0f, true))
+                if (auto target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 100.0f, true))
                 {
                     if (!me->IsWithinMeleeRange(target))
                     {
@@ -767,8 +767,8 @@ struct npc_ilgynoth_nightmare_ichor : public ScriptedAI
         if (spell->Id == SPELL_FIXATE)
         {
             me->SetReactState(REACT_PASSIVE);
-            DoResetThreat();
-            me->AddThreat(target, 100000.0f);
+            ResetThreatList();
+            me->GetThreatManager().AddThreat(target, 100000.0f);
             AttackStart(target);
         }
     }

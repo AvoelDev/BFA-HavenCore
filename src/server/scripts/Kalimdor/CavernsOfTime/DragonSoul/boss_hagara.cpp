@@ -441,7 +441,7 @@ class boss_hagara_the_stormbinder: public CreatureScript
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_WATERY_ENTRENCHMENT);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 Talk(SAY_AGGRO);
 
@@ -708,7 +708,7 @@ class boss_hagara_the_stormbinder: public CreatureScript
                         case EVENT_ICE_LANCE:
                         {
                             UnitList targets;
-                            SelectTargetList(targets, 3, SELECT_TARGET_NEAREST, 0.0f, true);
+                            SelectTargetList(targets, 3, SELECT_TARGET_MINDISTANCE, 0, 0.0f, true);
                             if (targets.empty())
                                 break;
 
@@ -810,7 +810,7 @@ class boss_hagara_the_stormbinder: public CreatureScript
                         case EVENT_ICICLE:
                         {
                             UnitList targets;
-                            SelectTargetList(targets, RAID_MODE(3, 7), SELECT_TARGET_RANDOM, 0.0f, true);
+                            SelectTargetList(targets, RAID_MODE(3, 7), SELECT_TARGET_RANDOM, 0, 0.0f, true);
                             if (!targets.empty())
                                 for (UnitList::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
                                     DoCast((*itr), SPELL_ICICLE, true);
@@ -983,7 +983,7 @@ class npc_hagara_the_stormbinder_stormborn_myrmidon : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_SPARK, urand(3000, 10000));
                 events.ScheduleEvent(EVENT_CHAIN_LIGHTNING, urand(2000, 10000));
@@ -1071,7 +1071,7 @@ class npc_hagara_the_stormbinder_stormbinder_adept : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_TORNADO, urand(5000, 15000));
             }
@@ -1211,7 +1211,7 @@ class npc_hagara_the_stormbinder_twilight_frost_evoker : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_FROST_BOLT, 1);
                 events.ScheduleEvent(EVENT_BLIZZARD, urand(5000, 15000));
@@ -1313,7 +1313,7 @@ class npc_hagara_the_stormbinder_lieutenant_shara : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_SHATTER, urand(4000, 6000));
                 events.ScheduleEvent(EVENT_FROST_CORRUPTION, urand(3000, 10000));
@@ -1369,7 +1369,7 @@ class npc_hagara_the_stormbinder_lieutenant_shara : public CreatureScript
                             events.ScheduleEvent(EVENT_FROST_CORRUPTION, urand(10000, 15000));
                             break;
                         case EVENT_FROZEN_GRASP:
-                            if (Unit* pTarget = SelectTarget(SELECT_TARGET_FARTHEST, 0, 0.0f, true))
+                            if (Unit* pTarget = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 0.0f, true))
                                 DoCast(pTarget, SPELL_FROZEN_GRASP);
                             events.ScheduleEvent(EVENT_FROZEN_GRASP, 31000);
                             break;

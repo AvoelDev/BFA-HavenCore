@@ -171,7 +171,7 @@ public:
             _EnterEvadeMode();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (instance)
             {
@@ -190,7 +190,7 @@ public:
             events.ScheduleEvent(EVENT_CAUSTIC_SLIME, urand(10000, 12000));
             events.ScheduleEvent(EVENT_BREAK, urand(14000, 16000));
 
-            _EnterCombat();
+            _JustEngagedWith();
         }
 
         void JustSummoned(Creature* summon) override
@@ -280,7 +280,7 @@ public:
                     case EVENT_CAUSTIC_SLIME:
                     {
                         std::list<Unit*> targets;
-                        SelectTargetList(targets, RAID_MODE(2, 5), SELECT_TARGET_RANDOM, 100.0f, true);
+                        SelectTargetList(targets, RAID_MODE(2, 5), SELECT_TARGET_RANDOM, 0, 100.0f, true);
                             if (!targets.empty())
                                 for (std::list<Unit*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
                                     DoCast(*itr, SPELL_CAUSTIC_SLIME);

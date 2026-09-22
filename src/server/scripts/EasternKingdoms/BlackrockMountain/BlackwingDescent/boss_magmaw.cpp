@@ -227,7 +227,7 @@ class boss_magmaw : public CreatureScript
             }
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             events.SetPhase(PHASE_NORMAL);
             events.ScheduleEvent(EVENT_LAVA_SPEW, urand(5000, 8000));
@@ -247,7 +247,7 @@ class boss_magmaw : public CreatureScript
                 events.ScheduleEvent(EVENT_BLAZING_INFERNO, 15000);
             }
 
-            BossAI::EnterCombat(who);
+            BossAI::JustEngagedWith(who);
         }
 
         void MoveInLineOfSight(Unit* /*who*/) override {}
@@ -536,10 +536,10 @@ class npc_lava_parasite : public CreatureScript
         {
             if(spell->Id == SPELL_PARASITIC_INFECTION)
             {
-                if(Unit * victim = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, -SPELL_PARASITIC_INFECTION))
+                if(Unit * victim = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, true, -SPELL_PARASITIC_INFECTION))
                 {
-                    me->getThreatManager().modifyThreatPercent(target, -100);
-                    me->AddThreat(victim, 5000.0f);
+                    me->GetThreatManager().ModifyThreatByPercent(target, -100);
+                    me->GetThreatManager().AddThreat(victim, 5000.0f);
                     AttackStart(victim);
                 }
             }
@@ -585,7 +585,7 @@ class npc_drakonid_drudge : public CreatureScript
             }
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             me->SetEmoteState(EMOTE_ONESHOT_NONE);
             if(Unit * magmaw = me->FindNearestCreature(BOSS_MAGMAW, 100.0f))
@@ -600,11 +600,11 @@ class npc_drakonid_drudge : public CreatureScript
 
             if(chargeTimer <= diff)
             {
-                if(Unit * target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 80.0f, true))
+                if(Unit * target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 80.0f, true))
                 {
-                    me->getThreatManager().resetAllAggro();
+                    me->GetThreatManager().resetAllAggro();
                     me->TauntApply(target);
-                    me->AddThreat(target, 20000.0f);
+                    me->GetThreatManager().AddThreat(target, 20000.0f);
                     DoCast(target, SPELL_DRAKONID_RUSH, true);
                     whirlwindTimer = 6000;
                     whirlwind = true;

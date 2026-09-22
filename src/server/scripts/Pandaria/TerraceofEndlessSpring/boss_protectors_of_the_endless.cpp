@@ -311,7 +311,7 @@ public:
                 pInstance->SetBossState(DATA_PROTECTORS, FAIL);
         }
 
-        void EnterCombat(Unit* attacker)
+        void JustEngagedWith(Unit* attacker)
         {
             me->AddAura(126848, me); // PvE Tier debuff
 
@@ -496,7 +496,7 @@ public:
                     me->AI()->DoAction(ACTION_I_WAS_INTERRUPTED);
                     break;
                 }
-                if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO))
+                if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT))
                     me->CastSpell(target, SPELL_LIGHTNING_BOLT, false);
                 events.ScheduleEvent(EVENT_LIGHTNING_BOLT, 3000);
                 break;
@@ -618,7 +618,7 @@ public:
                 pInstance->SetBossState(DATA_PROTECTORS, FAIL);
         }
 
-        void EnterCombat(Unit* attacker)
+        void JustEngagedWith(Unit* attacker)
         {
             me->AddAura(126848, me); // PvE Tier debuff
 
@@ -932,7 +932,7 @@ public:
                 pInstance->SetBossState(DATA_PROTECTORS, FAIL);
         }
 
-        void EnterCombat(Unit* attacker)
+        void JustEngagedWith(Unit* attacker)
         {
             me->AddAura(126848, me); // PvE Tier debuff
 
@@ -1387,7 +1387,7 @@ public:
         void CastCorruptedEssence() // for 10 diffs
         {
             std::list<Unit*> targets;
-            SelectTargetList(targets, 2, SELECT_TARGET_NEAREST, 1000.0f, true);
+            SelectTargetList(targets, 2, SELECT_TARGET_MINDISTANCE, 0, 1000.0f, true);
             if (!targets.empty())
                 for (std::list<Unit*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
                     DoCast(*itr, SPELL_CORRUPTED_ESSENCE, true);
@@ -1396,7 +1396,7 @@ public:
         void CastCorruptedEssencedoicinci() // for 25 diffs
         {
             std::list<Unit*> targets;
-            SelectTargetList(targets, 5, SELECT_TARGET_NEAREST, 1000.0f, true);
+            SelectTargetList(targets, 5, SELECT_TARGET_MINDISTANCE, 0, 1000.0f, true);
             if (!targets.empty())
                 for (std::list<Unit*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
                     DoCast(*itr, SPELL_CORRUPTED_ESSENCE, true);

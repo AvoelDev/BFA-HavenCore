@@ -42,9 +42,9 @@ public:
     {
         boss_firemawAI(Creature* creature) : BossAI(creature, DATA_FIREMAW) { }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
 
             events.ScheduleEvent(EVENT_SHADOWFLAME, urand(10000, 20000));
             events.ScheduleEvent(EVENT_WINGBUFFET, 30000);
@@ -71,8 +71,8 @@ public:
                         break;
                     case EVENT_WINGBUFFET:
                         DoCastVictim(SPELL_WINGBUFFET);
-                        if (DoGetThreat(me->GetVictim()))
-                            DoModifyThreatPercent(me->GetVictim(), -75);
+                        if (GetThreat(me->GetVictim()))
+                            ModifyThreatByPercent(me->GetVictim(), -75);
                         events.ScheduleEvent(EVENT_WINGBUFFET, 30000);
                         break;
                     case EVENT_FLAMEBUFFET:

@@ -240,9 +240,9 @@ struct TC_GAME_API ScriptedAI : public CreatureAI
     void Reset() override { }
 
     //Called at creature aggro either by MoveInLOS or Attack Start
-    void EnterCombat(Unit* /*victim*/) override { }
+    void JustEngagedWith(Unit* /*victim*/) override { }
 
-    // Called before EnterCombat even before the creature is in combat.
+    // Called before JustEngagedWith even before the creature is in combat.
     void AttackStart(Unit* /*target*/) override;
 
     // *************
@@ -264,11 +264,16 @@ struct TC_GAME_API ScriptedAI : public CreatureAI
     //Plays a sound to all nearby players
     void DoPlaySoundToSet(WorldObject* source, uint32 soundId);
 
-    //Drops all threat to 0%. Does not remove players from the threat list
-    void DoResetThreat();
-
-    float DoGetThreat(Unit* unit);
-    void DoModifyThreatPercent(Unit* unit, int32 pct);
+    // Add specified amount of threat directly to victim (ignores redirection effects) - also puts victim in combat and engages them if necessary
+    void AddThreat(Unit* victim, float amount, Unit* who = nullptr);
+    // Adds/removes the specified percentage from the specified victim's threat (to who, or me if not specified)
+    void ModifyThreatByPercent(Unit* victim, int32 pct, Unit* who = nullptr);
+    // Resets the victim's threat level to who (or me if not specified) to zero
+    void ResetThreat(Unit* victim, Unit* who = nullptr);
+    // Resets the specified unit's threat list (me if not specified) - does not delete entries, just sets their threat to zero
+    void ResetThreatList(Unit* who = nullptr);
+    // Returns the threat level of victim towards who (or me if not specified)
+    float GetThreat(Unit const* victim, Unit const* who = nullptr);
 
     void DoTeleportTo(float x, float y, float z, uint32 time = 0);
     void DoTeleportTo(float const pos[4]);
@@ -444,7 +449,7 @@ class TC_GAME_API BossAI : public ScriptedAI
         virtual void ScheduleTasks() { }
 
         void Reset() override { _Reset(); }
-        void EnterCombat(Unit* /*who*/) override { _EnterCombat(); }
+        void JustEngagedWith(Unit* /*who*/) override { _JustEngagedWith(); }
         void JustDied(Unit* /*killer*/) override { _JustDied(); }
         void JustReachedHome() override { _JustReachedHome(); }
         void KilledUnit(Unit* victim) override { _KilledUnit(victim); }
@@ -456,7 +461,7 @@ class TC_GAME_API BossAI : public ScriptedAI
 
     protected:
         virtual void _Reset();
-        void _EnterCombat(bool showFrameEngage = true);
+        void _JustEngagedWith(bool showFrameEngage = true);
         void _JustDied();
         void _JustReachedHome();
         void _KilledUnit(Unit* victim);
@@ -497,12 +502,12 @@ class TC_GAME_API WorldBossAI : public ScriptedAI
         virtual void ScheduleTasks() { }
 
         void Reset() override { _Reset(); }
-        void EnterCombat(Unit* /*who*/) override { _EnterCombat(); }
+        void JustEngagedWith(Unit* /*who*/) override { _JustEngagedWith(); }
         void JustDied(Unit* /*killer*/) override { _JustDied(); }
 
     protected:
         void _Reset();
-        void _EnterCombat();
+        void _JustEngagedWith();
         void _JustDied();
 };
 

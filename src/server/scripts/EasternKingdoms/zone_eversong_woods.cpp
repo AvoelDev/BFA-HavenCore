@@ -106,7 +106,7 @@ struct npc_apprentice_mirveda : public ScriptedAI
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override { }
+    void JustEngagedWith(Unit* /*who*/) override { }
 
     void JustSummoned(Creature* summoned) override
     {
@@ -314,7 +314,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override {}
+        void JustEngagedWith(Unit* /*who*/) override {}
 
         void UpdateAI(uint32 diff) override
         {
@@ -328,7 +328,7 @@ public:
 
                     if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
                     {
-                        me->AddThreat(target, 5000000.0f);
+                        me->GetThreatManager().AddThreat(target, 5000000.0f);
                         AttackStart(target);
                     }
                 }
@@ -462,7 +462,7 @@ public:
                 paladinGuid[i].Clear();
         }
 
-        void EnterCombat(Unit* /*who*/) override {}
+        void JustEngagedWith(Unit* /*who*/) override {}
 
         void UpdateAI(uint32 diff) override
         {

@@ -277,7 +277,7 @@ class boss_deathbringer_saurfang : public CreatureScript
                 me->RemoveAurasDueToSpell(SPELL_FRENZY);
             }
 
-            void EnterCombat(Unit* who) override
+            void JustEngagedWith(Unit* who) override
             {
                 if (_dead)
                     return;
@@ -580,7 +580,7 @@ class boss_deathbringer_saurfang : public CreatureScript
                     }
                     case ACTION_MARK_OF_THE_FALLEN_CHAMPION:
                     {
-                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true, -SPELL_MARK_OF_THE_FALLEN_CHAMPION))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true, true, -SPELL_MARK_OF_THE_FALLEN_CHAMPION))
                         {
                             ++_fallenChampionCastCount;
                             DoCast(target, SPELL_MARK_OF_THE_FALLEN_CHAMPION);

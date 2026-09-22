@@ -56,9 +56,9 @@ class boss_grobbulus : public CreatureScript
         {
             boss_grobbulusAI(Creature* creature) : BossAI(creature, BOSS_GROBBULUS) { }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 events.ScheduleEvent(EVENT_CLOUD, Seconds(15));
                 events.ScheduleEvent(EVENT_INJECT, Seconds(20));
                 events.ScheduleEvent(EVENT_SPRAY, randtime(Seconds(15), Seconds(30))); // not sure
@@ -94,7 +94,7 @@ class boss_grobbulus : public CreatureScript
                             events.Repeat(randtime(Seconds(15), Seconds(30)));
                             return;
                         case EVENT_INJECT:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true, -SPELL_MUTATING_INJECTION))
+                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true, true, -SPELL_MUTATING_INJECTION))
                                 DoCast(target, SPELL_MUTATING_INJECTION);
                             events.Repeat(Seconds(8) + Milliseconds(uint32(std::round(120 * me->GetHealthPct()))));
                             return;

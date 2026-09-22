@@ -66,9 +66,9 @@ class boss_occuthar : public CreatureScript
                 ASSERT(_vehicle);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
                 events.ScheduleEvent(EVENT_SEARING_SHADOWS, 8 * IN_MILLISECONDS);
                 events.ScheduleEvent(EVENT_FOCUSED_FIRE, 15 * IN_MILLISECONDS);
@@ -212,7 +212,7 @@ class FocusedFireTargetSelector
 
         bool operator() (WorldObject* target)
         {
-            if (target == _victim && _me->getThreatManager().getThreatList().size() > 1)
+            if (target == _victim && _me->GetThreatManager().getThreatList().size() > 1)
                 return true;
 
             if (target->GetTypeId() != TYPEID_PLAYER)

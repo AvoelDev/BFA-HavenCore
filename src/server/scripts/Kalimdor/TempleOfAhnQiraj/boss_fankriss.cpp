@@ -102,7 +102,7 @@ public:
                 Spawn->AI()->AttackStart(victim);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
         }
 
@@ -150,8 +150,8 @@ public:
                     {
                         DoCast(target, SPELL_ROOT);
 
-                        if (DoGetThreat(target))
-                            DoModifyThreatPercent(target, -100);
+                        if (GetThreat(target))
+                            ModifyThreatByPercent(target, -100);
 
                         Creature* Hatchling = nullptr;
                         switch (urand(0, 2))

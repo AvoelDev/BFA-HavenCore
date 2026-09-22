@@ -280,7 +280,7 @@ public:
             me->SetReactState(REACT_PASSIVE);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (Creature* controller_achi = me->FindNearestCreature(NPC_ACHIEVEMENT_CONTROLLER, 300.0f))
             {
@@ -297,7 +297,7 @@ public:
             me->Yell(COMBAT_START, LANG_UNIVERSAL);
 
             DoZoneInCombat();
-            _EnterCombat();
+            _JustEngagedWith();
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
         }
 
@@ -417,7 +417,7 @@ public:
                 bunny->SetReactState(REACT_AGGRESSIVE);
                 bunny->SetFaction(18);
                 bunny->Attack(me, true);
-                me->AddThreat(bunny, 200000.0f);
+                me->GetThreatManager().AddThreat(bunny, 200000.0f);
                 me->SetInCombatWith(bunny);
             }
             me->SetInCombatWithZone();
@@ -653,7 +653,7 @@ public:
             RecklessnessTimer = 13000;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
                 DoCast(target, SPELL_CHARGE);
@@ -1553,9 +1553,9 @@ public:
                 me->DespawnOrUnsummon();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
             events.RescheduleEvent(EVENT_ICYCLE_AOE, urand(6000, 8000));
             events.ScheduleEvent(EVENT_SPIRIT_STRIKE, 6000);
         }
@@ -1630,9 +1630,9 @@ public:
             instance->SetData(DATA_NIGHTMARE_HELIX, NOT_STARTED);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
             events.ScheduleEvent(EVENT_SPIRIT_STRIKE, 6000);
             events.ScheduleEvent(EVENT_SPIDERS, 2000);
 
@@ -1733,10 +1733,10 @@ public:
         void MoveInLineOfSight(Unit* who) override
         {
             if (me->IsWithinDistInMap(who, 10) && me->IsWithinLOSInMap(who))
-                EnterCombat(who);
+                JustEngagedWith(who);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
             me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC));
@@ -1798,7 +1798,7 @@ public:
                 me->DespawnOrUnsummon();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
         }
@@ -1842,7 +1842,7 @@ public:
             if (Unit* Calissa = me->GetVehicleKit()->GetPassenger(0))
             {
                 Calissa->CombatStart(me, true);
-                Calissa->AddThreat(me, 100000.0f);
+                Calissa->GetThreatManager().AddThreat(me, 100000.0f);
                 DoZoneInCombat();
             }
         }

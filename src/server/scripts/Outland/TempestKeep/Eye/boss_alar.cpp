@@ -142,9 +142,9 @@ class boss_alar : public CreatureScript
                 me->setActive(false);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 me->SetDisableGravity(true); // after enterevademode will be set walk movement
                 me->setActive(true);
             }
@@ -210,7 +210,7 @@ class boss_alar : public CreatureScript
 
             void UpdateAI(uint32 diff) override
             {
-                if (!me->IsInCombat()) // sometimes IsInCombat but !incombat, faction bug?
+                if (!me->IsEngaged())
                     return;
 
                 if (Berserk_Timer <= diff)
@@ -327,7 +327,7 @@ class boss_alar : public CreatureScript
 
                 if (Phase1)
                 {
-                    if (me->getThreatManager().getThreatList().empty())
+                    if (!me->IsThreatened())
                     {
                         EnterEvadeMode();
                         return;
@@ -482,7 +482,7 @@ class npc_ember_of_alar : public CreatureScript
                 Initialize();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 DoZoneInCombat();
             }
@@ -546,7 +546,7 @@ class npc_flame_patch_alar : public CreatureScript
         {
             npc_flame_patch_alarAI(Creature* creature) : ScriptedAI(creature) { }
             void Reset() override { }
-            void EnterCombat(Unit* /*who*/) override { }
+            void JustEngagedWith(Unit* /*who*/) override { }
             void AttackStart(Unit* /*who*/) override { }
             void MoveInLineOfSight(Unit* /*who*/) override { }
 

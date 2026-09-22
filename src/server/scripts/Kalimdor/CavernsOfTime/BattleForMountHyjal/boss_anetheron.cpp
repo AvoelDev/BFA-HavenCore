@@ -85,7 +85,7 @@ public:
                 instance->SetData(DATA_ANETHERONEVENT, NOT_STARTED);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (IsEvent)
                 instance->SetData(DATA_ANETHERONEVENT, IN_PROGRESS);
@@ -105,7 +105,7 @@ public:
             {
                 Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                 if (target && target->IsAlive())
-                    me->AddThreat(target, 0.0f);
+                    AddThreat(target, 0.0f);
             }
         }
 
@@ -212,7 +212,7 @@ public:
             CheckTimer = 5000;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
         }
 

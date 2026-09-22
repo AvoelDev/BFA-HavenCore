@@ -55,9 +55,9 @@ struct boss_chopper_redhook : public BossAI
 		BossAI::Reset();		
 	}
 
-	void EnterCombat(Unit* /*unit*/) override
+	void JustEngagedWith(Unit* /*unit*/) override
 	{
-		_EnterCombat();
+		_JustEngagedWith();
 		events.ScheduleEvent(EVENT_GORE_CRASH, 1s);
 		events.ScheduleEvent(EVENT_ON_THE_HOOK, 3s);
 		events.ScheduleEvent(EVENT_BARRAGE, 6s);
@@ -82,12 +82,12 @@ struct boss_chopper_redhook : public BossAI
 			break;
 
 		case EVENT_ON_THE_HOOK:
-			if (Unit* tar = SelectTarget(SELECT_TARGET_FARTHEST, 0, 100.0f, true))
+			if (Unit* tar = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 100.0f, true))
 			{
 				Talk(SAY_HOOK);
 				me->RemoveAurasDueToSpell(HEAVY_HITTER);
 				me->AddAura(ON_THE_HOOK, tar);
-				me->AddThreat(tar, 100.0f, SPELL_SCHOOL_MASK_NORMAL);	
+				me->GetThreatManager().AddThreat(tar, 100.0f);	
 				me->SetWalk(false);
 				me->SetSpeedRate(MOVE_RUN, 0.5f);
 				if (!me->HasAura(BOILING_RAGE))

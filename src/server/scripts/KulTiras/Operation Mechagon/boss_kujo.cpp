@@ -49,9 +49,9 @@ struct boss_kujo : public BossAI
         me->DespawnCreaturesInArea(NPC_FLYING_CLAW);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
         if (Creature* wendy = me->FindNearestCreature(NPC_WENDY_COGSWORTH, 300.0f, true))
             wendy->AI()->Talk(SAY_AGGRO);
         events.ScheduleEvent(EVENT_BLAZING_CHOMP, 3s);
@@ -68,7 +68,7 @@ struct boss_kujo : public BossAI
             if (Creature* wendy = me->FindNearestCreature(NPC_WENDY_COGSWORTH, 300.0f, true))
                 wendy->AI()->Talk(SAY_EXPLOSIVE_LEAP);
 
-            if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 100.0f, true))
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 100.0f, true))
             {
                 me->SetFacingToObject(target);
                 me->GetScheduler().Schedule(3s, [this, target](TaskContext /*context*/)

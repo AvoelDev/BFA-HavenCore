@@ -170,7 +170,7 @@ public:
             me->SetPower(POWER_ENERGY, 4);
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             //me->AddAura(138451, me);
             //SCHEDULE_EVENT(EVENT_CHECK_ACCELERATION, 1000);
@@ -338,7 +338,7 @@ public:
             events.ScheduleEvent(EVENT_CHECK_ENERGY, 1000);
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(EVENT_CRIMSON_WAKE, 10000);
             events.ScheduleEvent(EVENT_CHECK_ENERGY, 1000);
@@ -468,7 +468,7 @@ public:
                 case EVENT_SELECTION_TARGET:
                 {
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
                     if (!targets.empty())
                         if (targets.size() >= 1)
                             targets.resize(1);
@@ -476,7 +476,7 @@ public:
                     for (std::list<Unit*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
                     {
                         me->AddAura(SPELL_CRIMSON_WAKE_FIXATE, (*itr));
-                        me->AddThreat((*itr), 9999999999.9f);
+                        me->GetThreatManager().AddThreat((*itr), 9999999999.9f);
                         me->AI()->AttackStart((*itr));
                     }
                     me->DespawnOrUnsummon(30000);
@@ -565,7 +565,7 @@ public:
             me->SetPower(POWER_ENERGY, 0);
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(EVENT_EXPLOSIVE_SLAM, 5000);
             events.ScheduleEvent(EVENT_MATTER_SWAP, urand(2000, 7000));
@@ -768,7 +768,7 @@ public:
             return me->FindNearestCreature(NPC_ANIMA_ORB, 400.0f, true);
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             if (Creature* animaOrb = GetAnimaOrb())
             {
@@ -1021,7 +1021,7 @@ public:
                 case EVENT_ANIMA_FONT:
                 {
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 
                     targets.remove_if(hasTouchAura());
 
@@ -1047,7 +1047,7 @@ public:
                 case EVENT_TOUCH_OF_THE_ANIMUS:
                 {
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
                     if (!targets.empty())
                         if (targets.size() >= 1)
                             targets.resize(1);
@@ -1124,7 +1124,7 @@ public:
             _y = me->GetPositionY();
         }
 
-        void EnterCombat(Unit* /*unit*/)
+        void JustEngagedWith(Unit* /*unit*/)
         {
             events.RescheduleEvent(EVENT_SUMMON_ANIMA, 3000);
             me->DespawnOrUnsummon(20000);
@@ -1243,7 +1243,7 @@ public:
                 case EVENT_MOVE_TO_TARGET:
                 {
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                    SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
                     if (!targets.empty())
                         if (targets.size() >= 1)
                             targets.resize(1);
@@ -1251,7 +1251,7 @@ public:
                     for (std::list<Unit*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
                     {
                         me->GetMotionMaster()->MoveChase((*itr));
-                        me->AddThreat((*itr), 99999999.9f);
+                        me->GetThreatManager().AddThreat((*itr), 99999999.9f);
                         me->AI()->AttackStart((*itr));
                         events.ScheduleEvent(EVENT_UNAURA_AND_AURA, 500);
                     }

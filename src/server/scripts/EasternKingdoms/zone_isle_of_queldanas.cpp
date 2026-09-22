@@ -54,7 +54,7 @@ struct npc_greengill_slave : public ScriptedAI
 
             if (Creature* Myrmidon = me->FindNearestCreature(NPC_DARKSPINE_MYRIDON, 70))
             {
-                me->AddThreat(Myrmidon, 100000.0f);
+                AddThreat(Myrmidon, 100000.0f);
                 AttackStart(Myrmidon);
             }
         }
@@ -95,7 +95,7 @@ struct npc_converted_sentry : public ScriptedAI
 
     void MoveInLineOfSight(Unit* /*who*/) override { }
 
-    void EnterCombat(Unit* /*who*/) override { }
+    void JustEngagedWith(Unit* /*who*/) override { }
 };
 
 

@@ -323,7 +323,7 @@ class boss_immerseus : public CreatureScript
                     DoStartNoMovement(who);
             }
 
-            void EnterCombat(Unit* /*unit*/) override
+            void JustEngagedWith(Unit* /*unit*/) override
             {
                 events.ScheduleEvent(EVENT_SHA_BOLT, urand(6000, 20000));
                 events.ScheduleEvent(EVENT_CORROSIVE_BLAST, 10000);
@@ -652,7 +652,7 @@ class boss_immerseus : public CreatureScript
                 me->RemoveAllAuras();
                 me->AttackStop();
                 me->SetFaction(35);
-                me->DeleteThreatList();
+                me->GetThreatManager().ClearAllThreat();
                 me->CombatStop(true);
                 me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC));
 

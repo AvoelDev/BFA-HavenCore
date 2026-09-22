@@ -253,14 +253,14 @@ public:
             instance->SetData(DATA_LADYVASHJEVENT, IN_PROGRESS);
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             // remove old tainted cores to prevent cheating in phase 2
             Map::PlayerList const &PlayerList = me->GetMap()->GetPlayers();
             for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
                 if (Player* player = itr->GetSource())
                     player->DestroyItemCount(31088, 1, true);
-            StartEvent(); // this is EnterCombat(), so were are 100% in combat, start the event
+            StartEvent(); // this is JustEngagedWith(), so were are 100% in combat, start the event
 
             if (Phase != 2)
                 AttackStart(who);
@@ -348,7 +348,6 @@ public:
                     // Shock Burst
                     // Randomly used in Phases 1 and 3 on Vashj's target, it's a Shock spell doing 8325-9675 nature damage and stunning the target for 5 seconds, during which she will not attack her target but switch to the next person on the aggro list.
                     DoCastVictim(SPELL_SHOCK_BLAST);
-                    me->TauntApply(me->GetVictim());
 
                     ShockBlastTimer = 1000 + rand32() % 14000;       // random cooldown
                 } else ShockBlastTimer -= diff;
@@ -432,11 +431,10 @@ public:
                 if (CheckTimer <= diff)
                 {
                     bool inMeleeRange = false;
-                    std::list<HostileReference*> t_list = me->getThreatManager().getThreatList();
-                    for (std::list<HostileReference*>::const_iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
+                    for (auto* ref : me->GetThreatManager().GetUnsortedThreatList())
                     {
-                        Unit* target = ObjectAccessor::GetUnit(*me, (*itr)->getUnitGuid());
-                        if (target && target->IsWithinDistInMap(me, 5)) // if in melee range
+                        Unit* target = ref->GetVictim();
+                        if (target->IsWithinMeleeRange(me)) // if in melee range
                         {
                             inMeleeRange = true;
                             break;
@@ -602,7 +600,7 @@ public:
             VashjGUID = instance->GetGuidData(DATA_LADYVASHJ);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
@@ -682,9 +680,9 @@ public:
                 ENSURE_AI(boss_lady_vashj::boss_lady_vashjAI, vashj->AI())->EventTaintedElementalDeath();
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
-            me->AddThreat(who, 0.1f);
+            AddThreat(who, 0.1f);
         }
 
         void UpdateAI(uint32 diff) override

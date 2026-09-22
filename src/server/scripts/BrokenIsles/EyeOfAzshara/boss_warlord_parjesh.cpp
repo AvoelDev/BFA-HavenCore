@@ -286,7 +286,7 @@ public:
 					it->DespawnOrUnsummon();
 		}
 
-		void EnterCombat(Unit*) override
+		void JustEngagedWith(Unit*) override
 		{
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
 			SelectSoundAndText(me, 1);
@@ -352,7 +352,7 @@ public:
 				case EVENT_THROW_SPEAR:
 				{
 					std::list<Unit*> targets;
-					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true); // 5 players, random targets, alive > non-tank spec selector Nontankselector selects the current target
+					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true); // 5 players, random targets, alive > non-tank spec selector Nontankselector selects the current target
 					targets.remove_if(checkSpec());
 
 					if (!targets.empty())
@@ -417,7 +417,7 @@ public:
 			events.Reset();
 		}
 
-		void EnterCombat(Unit* /*unit*/)
+		void JustEngagedWith(Unit* /*unit*/)
 		{
 			events.ScheduleEvent(EVENT_BELLOWING_ROAR, TIMER_BELLOWING_ROAR);
 		}
@@ -467,7 +467,7 @@ public:
 
 		EventMap events;
 
-		void EnterCombat(Unit* /*unit*/)
+		void JustEngagedWith(Unit* /*unit*/)
 		{
 			events.ScheduleEvent(EVENT_LIGHTING_STRIKE, TIMER_LIGHTING_STRIKE);
 			events.ScheduleEvent(EVENT_RESTORATION, TIMER_RESTORATION);

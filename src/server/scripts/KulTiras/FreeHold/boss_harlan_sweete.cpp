@@ -89,9 +89,9 @@ struct boss_harlan_sweete : public BossAI
         instance->SetBossState(FreeholdData::DataHarlanSweete, FAIL);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
-        _EnterCombat(true);
+        _JustEngagedWith(true);
         Talk(HarlanTalk::TalkAggro);
         instance->SetBossState(FreeholdData::DataHarlanSweete, IN_PROGRESS);
         events.ScheduleEvent(HarlanSweeteEvents::EventCannonBarrage, 8000);
@@ -220,8 +220,8 @@ struct npc_irontide_granadier : public ScriptedAI
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true))
                 {
                     me->CastSpell(target, HarlanSweeteSpells::BlackPowderBombAura, true);
-                    me->getThreatManager().resetAllAggro();
-                    me->getThreatManager().addThreat(target, 1000000.0f);
+                    me->GetThreatManager().resetAllAggro();
+                    me->GetThreatManager().AddThreat(target, 1000000.0f);
                     me->GetMotionMaster()->MoveChase(target);
                     targetGUID = target->GetGUID();
                 }

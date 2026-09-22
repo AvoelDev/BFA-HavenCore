@@ -241,7 +241,7 @@ public:
             CreatureAI::MoveInLineOfSight(pWho);
         }
 
-        void EnterCombat(Unit* /*unit*/) override
+        void JustEngagedWith(Unit* /*unit*/) override
         {
 
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -763,7 +763,7 @@ class npc_embodied_terror : public CreatureScript
             }
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             terrorizeTimer = urand(3000, 6000);
         }
@@ -962,7 +962,7 @@ class npc_unstable_sha : public CreatureScript
                 switch (eventId)
                 {
                 case 1:
-                    if (Unit* pUnit = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, 0))
+                    if (Unit* pUnit = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, true, 0))
                     {
                         DoCast(pUnit, SPELL_UNSTABLE_BOLT);
                         events.ScheduleEvent(1, 4000);

@@ -166,7 +166,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             //not always use
             if (rand32() % 4)
@@ -233,7 +233,7 @@ public:
         void DoFriend()
         {
             me->RemoveAllAuras();
-            me->DeleteThreatList();
+            me->GetThreatManager().ClearAllThreat();
             me->CombatStop(true);
 
             me->StopMoving();
@@ -254,7 +254,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {

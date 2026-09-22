@@ -169,10 +169,10 @@ private:
         damage = 0;
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         this->phase = 1;
-        _EnterCombat();
+        _JustEngagedWith();
         events.ScheduleEvent(EVENT_POWER_MATRIX, 4s);
         events.ScheduleEvent(EVENT_EXPLOSIVE_CORRUPTION, 5s);
         events.ScheduleEvent(EVENT_THOUSAND_MAWS, 23s);
@@ -247,7 +247,7 @@ private:
             if (this->phase != 3)
             {
                 UnitList u_li;
-                SelectTargetList(u_li, 3, SELECT_TARGET_RANDOM, 150.0f, true);
+                SelectTargetList(u_li, 3, SELECT_TARGET_RANDOM, 0, 150.0f, true);
                 for (Unit* targets : u_li)
                 {
                     me->CastSpell(targets, SPELL_EXPLOSIVE_CORRUPTION, true);
@@ -423,7 +423,7 @@ struct npc_cyclopean_terror : public ScriptedAI
             me->AI()->DoZoneInCombat(nullptr);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         events.ScheduleEvent(EVENT_TORMENT, 5s);
     }
@@ -468,7 +468,7 @@ struct npc_dark_young : public ScriptedAI
             me->AI()->DoZoneInCombat(nullptr);       
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {        
         me->AddAura(SPELL_PERIODIC_ENERGY_GAIN);
         me->CastSpell(nullptr, SPELL_DARK_YOUNG_COSMETIC, true);
@@ -751,7 +751,7 @@ struct npc_blightspreader_tendril : public ScriptedAI
         me->SetPower(POWER_ENERGY, 100);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (instance)
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -838,9 +838,9 @@ private:
         BossAI::Reset();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
         me->AddAura(SPELL_CORRUPTING_BITE_DUMMY);
         me->SetPowerType(POWER_ENERGY);
         me->SetPower(POWER_ENERGY, 0);
@@ -976,7 +976,7 @@ private:
             if (Is25ManRaid())
             {
                 UnitList u_li;
-                SelectTargetList(u_li, 15, SELECT_TARGET_RANDOM, 150.0f, true);
+                SelectTargetList(u_li, 15, SELECT_TARGET_RANDOM, 0, 150.0f, true);
                 for (Unit* targets : u_li)
                 {
                     me->CastSpell(targets->GetPosition(), SPELL_MALIGNANT_GROWTH_MISSILE, true);
@@ -985,7 +985,7 @@ private:
             else
             {
                 UnitList u_li;
-                SelectTargetList(u_li, 5, SELECT_TARGET_RANDOM, 150.0f, true);
+                SelectTargetList(u_li, 5, SELECT_TARGET_RANDOM, 0, 150.0f, true);
                 for (Unit* targets : u_li)
                 {
                     me->CastSpell(targets->GetPosition(), SPELL_MALIGNANT_GROWTH_MISSILE, true);
@@ -1043,7 +1043,7 @@ struct npc_matrix_surge : public ScriptedAI
             {
                 me->AddAura(SPELL_MATRIX_SURGE);
                 if (matrixHolder->HasAura(SPELL_POWER_MATRIX))
-                    me->AddThreat(matrixHolder, 1000.0f, SpellSchoolMask::SPELL_SCHOOL_MASK_NORMAL);                
+                    me->GetThreatManager().AddThreat(matrixHolder, 1000.0f);                
             }
             me->DespawnOrUnsummon(30s);
         });
@@ -1069,7 +1069,7 @@ struct npc_bursting_boil : public ScriptedAI
         AddTimedDelayedOperation(8100, [this]() -> void
         {
             UnitList u_li;
-            SelectTargetList(u_li, 2, SELECT_TARGET_RANDOM, 15.0f, true);
+            SelectTargetList(u_li, 2, SELECT_TARGET_RANDOM, 0, 15.0f, true);
             for (Unit* targets : u_li)
             {
                 me->CastSpell(targets, SPELL_BURSTING_BOIL_AURA, true);
@@ -1093,7 +1093,7 @@ private:
         unstopabbleCorruption = false;
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         events.ScheduleEvent(EVENT_MIND_NUMBED_CHATTER, 5s);
     }
@@ -1149,7 +1149,7 @@ private:
         if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0 , 100.0f, true))
         {
             me->AddAura(SPELL_DARK_PURPOSE);
-            me->AddThreat(target, 1000.0f, SpellSchoolMask::SPELL_SCHOOL_MASK_NORMAL);
+            me->GetThreatManager().AddThreat(target, 1000.0f);
             me->GetMotionMaster()->MoveChase(target, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
         }
     }

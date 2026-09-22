@@ -119,9 +119,9 @@ private:
         me->SetFlying(true);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
         Talk(SAY_AGGRO);
         this->phase = 1;
         events.ScheduleEvent(EVENT_SHADOW_BARRAGE, 3s);
@@ -172,7 +172,7 @@ private:
             UnitList u_li;
             if (IsHeroic() || (IsMythic()))
             {
-                SelectTargetList(u_li, 2, SELECT_TARGET_RANDOM, 150.0f, true);
+                SelectTargetList(u_li, 2, SELECT_TARGET_RANDOM, 0, 150.0f, true);
                 for (Unit* targets : u_li)
                 {
                     me->AddAura(SPELL_DARK_REVELATION_TRIGGER, targets);
@@ -219,7 +219,7 @@ private:
         }
         case EVENT_RUPTURING_BLOOD:
         {
-            if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.0f, true))
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.0f, true))
             {
                 me->AddAura(SPELL_RUPTURING_BLOOD_AURA, target);
                 AddTimedDelayedOperation(20100, [this, target]() -> void
@@ -234,7 +234,7 @@ private:
         {
             Talk(SAY_DEATHWISH);
             UnitList u_li;
-            SelectTargetList(u_li, 2, SELECT_TARGET_RANDOM, 150.0f, true);
+            SelectTargetList(u_li, 2, SELECT_TARGET_RANDOM, 0, 150.0f, true);
             for (Unit* targets : u_li)
             {
                 me->CastSpell(targets, SPELL_DEATHWISH, true);
@@ -370,7 +370,7 @@ struct npc_generic_zul_minion : public ScriptedAI
             }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         switch (me->GetEntry())
         {

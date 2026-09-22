@@ -93,7 +93,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (HasEscortState(STATE_ESCORT_ESCORTING) && !IsFriendSummoned && GetPlayerForEscort())
             {
@@ -133,7 +133,7 @@ public:
 
                     me->RestoreFaction();
                     me->RemoveAllAuras();
-                    me->DeleteThreatList();
+                    me->GetThreatManager().ClearAllThreat();
                     me->CombatStop(true);
 
                     SetRun(false);

@@ -328,7 +328,7 @@ class boss_general_nazgrim : public CreatureScript
                 me->SetEmoteState(Emote::EMOTE_STATE_READY2H);
             }
 
-            void EnterCombat(Unit* who) override
+            void JustEngagedWith(Unit* who) override
             {
                 TalkAggro();
                 events.ScheduleEvent(EVENT_BERSERK, TIMER_BERSERK);
@@ -1013,7 +1013,7 @@ class npc_general_nazgrim_korkron_assassin : public CreatureScript
                 {
                     me->AddAura(SPELL_ASSASSINS_MARK, target);
                     me->AddAura(SPELL_STEALTH, me);
-                    me->AddThreat(target, 1000000.0f);
+                    me->GetThreatManager().AddThreat(target, 1000000.0f);
                     AttackStart(target);
                 }
 
@@ -1044,7 +1044,7 @@ class npc_general_nazgrim_korkron_warshaman : public CreatureScript
                 npc_nazgrim_korkron_addAI::Reset();
             }
 
-            void EnterCombat(Unit* /*unit*/)
+            void JustEngagedWith(Unit* /*unit*/)
             {
             }
 
@@ -1131,7 +1131,7 @@ class npc_general_nazgrim_korkron_sniper : public CreatureScript
                 SetEquipmentSlots(false, 103953, 0, 103953);
             }
 
-            void EnterCombat(Unit* /*unit*/)  override
+            void JustEngagedWith(Unit* /*unit*/)  override
             {
             }
 
@@ -1424,7 +1424,7 @@ class npc_general_nazgrim_orgrimmar_faithful : public CreatureScript
                 me->SetEmoteState(Emote::EMOTE_STATE_READY2H);
             }
 
-            void EnterCombat(Unit* /*unit*/) override
+            void JustEngagedWith(Unit* /*unit*/) override
             {
                 DoAggro();
             }
@@ -1504,11 +1504,11 @@ class spell_general_nazgrim_heroic_shockwave_force : public SpellScriptLoader
                 {
                     std::list<Unit*> rangeTargets;
 
-                    pNazgrim->AI()->SelectTargetList(rangeTargets, 2, SELECT_TARGET_RANDOM, -15.0f, true);
+                    pNazgrim->AI()->SelectTargetList(rangeTargets, 2, SELECT_TARGET_RANDOM, 0, -15.0f, true);
 
                     if (rangeTargets.size() < 2)
                     {
-                        pNazgrim->AI()->SelectTargetList(rangeTargets, 2, SELECT_TARGET_RANDOM, 0.0f, true);
+                        pNazgrim->AI()->SelectTargetList(rangeTargets, 2, SELECT_TARGET_RANDOM, 0, 0.0f, true);
                     }
 
                     targets.clear();

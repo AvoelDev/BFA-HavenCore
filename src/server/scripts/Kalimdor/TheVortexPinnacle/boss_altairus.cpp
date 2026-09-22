@@ -106,9 +106,9 @@ public:
             summons.DespawnAll();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
 
             events.ScheduleEvent(EVENT_CALL_THE_WIND, urand(7500, 10000));
             events.ScheduleEvent(EVENT_CHILLING_BREATH, urand(20000, 30000));
@@ -133,7 +133,7 @@ public:
                     summoned->CastSpell(summoned, SPELL_CALL_THE_WIND_VISUAL, true);
                     break;
                 case NPC_TWISTER:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true, 0))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true, true, 0))
                     {
                         summoned->SetSpeed(MOVE_RUN, 0.4f);
                         summoned->SetSpeed(MOVE_WALK, 0.4f);

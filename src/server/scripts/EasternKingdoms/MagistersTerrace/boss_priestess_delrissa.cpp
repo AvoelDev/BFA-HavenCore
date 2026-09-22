@@ -165,21 +165,14 @@ public:
             instance->SetBossState(DATA_DELRISSA, FAIL);
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             Talk(SAY_AGGRO);
 
             for (uint8 i = 0; i < MAX_ACTIVE_LACKEY; ++i)
-            {
                 if (Unit* pAdd = ObjectAccessor::GetUnit(*me, m_auiLackeyGUID[i]))
-                {
-                    if (!pAdd->GetVictim())
-                    {
-                        who->SetInCombatWith(pAdd);
-                        pAdd->AddThreat(who, 0.0f);
-                    }
-                }
-            }
+                    if (!pAdd->IsEngaged())
+                        AddThreat(who, 0.0f, pAdd);
 
             instance->SetBossState(DATA_DELRISSA, IN_PROGRESS);
         }
@@ -397,31 +390,19 @@ struct boss_priestess_lackey_commonAI : public ScriptedAI
         }
     }
 
-    void EnterCombat(Unit* who) override
+    void JustEngagedWith(Unit* who) override
     {
         if (!who)
             return;
 
         for (uint8 i = 0; i < MAX_ACTIVE_LACKEY; ++i)
-        {
             if (Unit* pAdd = ObjectAccessor::GetUnit(*me, m_auiLackeyGUIDs[i]))
-            {
-                if (!pAdd->GetVictim() && pAdd != me)
-                {
-                    who->SetInCombatWith(pAdd);
-                    pAdd->AddThreat(who, 0.0f);
-                }
-            }
-        }
+                if (!pAdd->IsEngaged() && pAdd != me)
+                    AddThreat(who, 0.0f, pAdd);
 
         if (Creature* pDelrissa = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_DELRISSA)))
-        {
-            if (pDelrissa->IsAlive() && !pDelrissa->GetVictim())
-            {
-                who->SetInCombatWith(pDelrissa);
-                pDelrissa->AddThreat(who, 0.0f);
-            }
-        }
+            if (pDelrissa->IsAlive() && !pDelrissa->IsEngaged())
+                AddThreat(who, 0.0f, pDelrissa);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -478,7 +459,7 @@ struct boss_priestess_lackey_commonAI : public ScriptedAI
 
         if (ResetThreatTimer <= diff)
         {
-            DoResetThreat();
+            ResetThreatList();
             ResetThreatTimer = urand(5000, 20000);
         } else ResetThreatTimer -= diff;
     }
@@ -550,10 +531,10 @@ public:
 
                 Unit* unit = SelectTarget(SELECT_TARGET_RANDOM, 0);
 
-                DoResetThreat();
+                ResetThreatList();
 
                 if (unit)
-                    me->AddThreat(unit, 1000.0f);
+                    AddThreat(unit, 1000.0f);
 
                 InVanish = true;
                 Vanish_Timer = 30000;
@@ -646,7 +627,7 @@ public:
             boss_priestess_lackey_commonAI::Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoCast(me, SPELL_SUMMON_IMP);
         }
@@ -875,7 +856,7 @@ public:
             if (Blink_Timer <= diff)
             {
                 bool InMeleeRange = false;
-                ThreatContainer::StorageType const &t_list = me->getThreatManager().getThreatList();
+                ThreatContainer::StorageType const& t_list = me->GetThreatManager().getThreatList();
                 for (ThreatContainer::StorageType::const_iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
                 {
                     if (Unit* target = ObjectAccessor::GetUnit(*me, (*itr)->getUnitGuid()))
@@ -954,7 +935,7 @@ public:
             boss_priestess_lackey_commonAI::Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoCast(me, SPELL_BATTLE_SHOUT);
         }
@@ -969,7 +950,7 @@ public:
             if (Intercept_Stun_Timer <= diff)
             {
                 bool InMeleeRange = false;
-                ThreatContainer::StorageType const &t_list = me->getThreatManager().getThreatList();
+                ThreatContainer::StorageType const& t_list = me->GetThreatManager().getThreatList();
                 for (ThreatContainer::StorageType::const_iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
                 {
                     if (Unit* target = ObjectAccessor::GetUnit(*me, (*itr)->getUnitGuid()))

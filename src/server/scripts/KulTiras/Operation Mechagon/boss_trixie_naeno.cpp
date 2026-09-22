@@ -96,12 +96,12 @@ struct boss_trixie_naeno : public BossAI
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         switch (me->GetEntry())
         {
         case NPC_TRIXIE:
-            _EnterCombat();
+            _JustEngagedWith();
             events.ScheduleEvent(EVENT_TAZE, 3s);
             events.ScheduleEvent(EVENT_ELECTRIC_SLIDE, 10s);
             events.ScheduleEvent(EVENT_MEGA_TAZE, 15s);
@@ -114,7 +114,7 @@ struct boss_trixie_naeno : public BossAI
             break;
 
         case NPC_NAENO:            
-            _EnterCombat();
+            _JustEngagedWith();
             Talk(SAY_NAENO_AGGRO);
             if (Creature* mechacycle = me->FindNearestCreature(NPC_MECHACYCLE, 100.f, true))
             {                 
@@ -128,7 +128,7 @@ struct boss_trixie_naeno : public BossAI
             break;
 
         case NPC_MECHACYCLE:
-            _EnterCombat();
+            _JustEngagedWith();
             events.ScheduleEvent(EVENT_RANDOM_MOVE, 3s);
             break;
         }
@@ -194,7 +194,7 @@ struct boss_trixie_naeno : public BossAI
             break;
 
         case EVENT_BOLT_BUSTER:
-            if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.0f, true))
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.0f, true))
             {
                 me->SetFacingToObject(target);
                 me->CastSpell(target, SPELL_BOLT_BUSTER, false);
@@ -204,7 +204,7 @@ struct boss_trixie_naeno : public BossAI
 
         case EVENT_ROADKILL:
             Talk(SAY_ROADKILL);
-            if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 100.0f, true))            
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 100.0f, true))            
                 me->CastSpell(target, SPELL_ROADKILL_CHARGE, true);
             events.Repeat(20s);
             break;
@@ -240,7 +240,7 @@ struct boss_trixie_naeno : public BossAI
             if (Creature* mechacycle = me->FindNearestCreature(NPC_MECHACYCLE, 10.0f, true))
             {
                 mechacycle->StopMoving();
-                if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 100.0f, true))
+                if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 100.0f, true))
                 {                    
                     mechacycle->SetFacingToObject(target, true);                    
                     mechacycle->CastSpell(target->GetPosition(), SPELL_PEDAL_TO_THE_METAL, false);

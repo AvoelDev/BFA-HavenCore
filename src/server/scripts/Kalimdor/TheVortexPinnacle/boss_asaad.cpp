@@ -123,9 +123,9 @@ class boss_asaad : public CreatureScript
                 stormTargetGUID = ObjectGuid::Empty;
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
             }
 
             void JustDied(Unit* /*who*/) override
@@ -426,7 +426,7 @@ public:
     {
         npc_skyfall_starAI(Creature* creature) : ScriptedAI(creature) { }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             _events.ScheduleEvent(EVENT_ARCANE_BARRAGE, urand(3000, 10000));
         }
@@ -448,7 +448,7 @@ public:
                     case EVENT_ARCANE_BARRAGE:
                         if(Player* player = me->SelectNearestPlayer(55.0f))
                         {
-                            me->AddThreat(player, 55.0f);
+                            me->GetThreatManager().AddThreat(player, 55.0f);
                             me->AI()->AttackStart(player);
                             DoCast(SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true), SPELL_ARCANE_BARRAGE, true);
                         }

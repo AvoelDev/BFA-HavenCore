@@ -180,7 +180,7 @@ struct npc_hogger : public ScriptedAI
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         _events.ScheduleEvent(EVENT_VICIOUS_SLICE, 3000);
     }
@@ -218,7 +218,7 @@ struct npc_hogger : public ScriptedAI
 
     void RewardPlayers()
     {
-        for (auto itr : me->getThreatManager().getThreatList())
+        for (auto itr : me->GetThreatManager().getThreatList())
             if (Player* player = ObjectAccessor::GetPlayer(*me, itr->getUnitGuid()))
                 player->RewardPlayerAndGroupAtEvent(NPC_HOGGER, me);
     }

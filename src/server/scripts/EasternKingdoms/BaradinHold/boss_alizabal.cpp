@@ -95,9 +95,9 @@ class boss_alizabal : public CreatureScript
                 _skewer = false;
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 Talk(SAY_AGGRO);
                 instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
                 events.ScheduleEvent(EVENT_RANDOM_CAST, 10000);
@@ -164,7 +164,7 @@ class boss_alizabal : public CreatureScript
                                 case 0:
                                     if (!_skewer)
                                     {
-                                        if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0))
+                                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0))
                                         {
                                             DoCast(target, SPELL_SKEWER, true);
                                             Talk(SAY_SKEWER);
@@ -206,7 +206,7 @@ class boss_alizabal : public CreatureScript
                                     }
                                     else if (!_skewer)
                                     {
-                                        if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0))
+                                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0))
                                         {
                                             DoCast(target, SPELL_SKEWER, true);
                                             Talk(SAY_SKEWER);

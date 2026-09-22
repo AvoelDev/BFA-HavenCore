@@ -108,9 +108,9 @@ namespace Instances
                             Talk(eTalks::TalkSlay);
                     }
 
-                    void EnterCombat(Unit*) override
+                    void JustEngagedWith(Unit*) override
                     {
-                        _EnterCombat();
+                        _JustEngagedWith();
 
                         Talk(eTalks::TalkAggro);
 
@@ -167,7 +167,7 @@ namespace Instances
                             else
                             {
                                 if (Unit* target = me->GetVictim())
-                                    target->AddThreat(target, 10000.0f);
+                                    target->GetThreatManager().AddThreat(target, 10000.0f);
                             }
                         }
                     }

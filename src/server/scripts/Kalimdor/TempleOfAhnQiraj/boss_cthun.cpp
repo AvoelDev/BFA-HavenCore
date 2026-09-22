@@ -221,7 +221,7 @@ public:
                 pPortal->SetReactState(REACT_PASSIVE);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
             instance->SetData(DATA_CTHUN_PHASE, PHASE_EYE_GREEN_BEAM);
@@ -532,7 +532,7 @@ public:
             instance->SetData(DATA_CTHUN_PHASE, PHASE_NOT_STARTED);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
         }
@@ -649,8 +649,8 @@ public:
                         //Place all units in threat list on outside of stomach
                         Stomach_Map.clear();
 
-                        for (std::list<HostileReference*>::const_iterator i = me->getThreatManager().getThreatList().begin(); i != me->getThreatManager().getThreatList().end(); ++i)
-                            Stomach_Map[(*i)->getUnitGuid()] = false;   //Outside stomach
+                        for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
+                            Stomach_Map[ref->GetVictim()->GetGUID()] = false;   //Outside stomach
 
                         //Spawn 2 flesh tentacles
                         FleshTentaclesKilled = 0;
@@ -932,7 +932,7 @@ public:
             KillSelfTimer = 35000;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
         }
@@ -1011,7 +1011,7 @@ public:
             EvadeTimer = 5000;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
         }
@@ -1128,7 +1128,7 @@ public:
             EvadeTimer = 5000;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
         }
@@ -1243,7 +1243,7 @@ public:
             BeamTimer = 500;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
         }
