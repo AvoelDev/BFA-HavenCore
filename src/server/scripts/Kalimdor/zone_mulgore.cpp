@@ -211,10 +211,244 @@ class spell_mulgore_funeral_offering : public SpellScript
     }
 };
 
+// NPC Fledgling Brave 36942
+class npc_fledgling_brave : public CreatureScript
+{
+public:
+    npc_fledgling_brave() : CreatureScript("npc_fledgling_brave") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_fledgling_brave_AI(creature);
+    }
+
+    struct npc_fledgling_brave_AI : public ScriptedAI
+    {
+        npc_fledgling_brave_AI(Creature* creature) : ScriptedAI(creature) {}
+
+        enum Spells
+        {
+            SPELL_SHOOT     = 70092,
+            SPELL_CLEAVE    = 81502,
+            SPELL_WAR_STOMP = 81500
+        };
+
+        enum Events
+        {
+            EVENT_SHOOT       = 1,
+            EVENT_CLEAVE      = 2,
+            EVENT_WAR_STOMP   = 3,
+            EVENT_RANGE_CHECK = 4
+        };
+
+        enum Weapons
+        {
+            WEAPON_MELEE = 2023,
+            WEAPON_RANGE = 49462
+        };
+
+        void Reset() override
+        {
+            events.Reset();
+            me->SetVirtualItem(0, WEAPON_MELEE);
+        }
+
+        void EnterCombat(Unit* /*who*/) override
+        {
+            me->StopMoving();
+            me->AttackStop();
+            ScheduleCombatEvents();
+        }
+
+        void ScheduleCombatEvents()
+        {
+            events.Reset();
+            events.ScheduleEvent(EVENT_SHOOT, urand(2300, 3900));
+            events.ScheduleEvent(EVENT_CLEAVE, urand(7000, 9000));
+            events.ScheduleEvent(EVENT_WAR_STOMP, urand(17000, 22000));
+        }
+
+        void CheckDistanceBehavior(Unit* victim){
+            if(!victim){
+                return;
+            }
+
+            float distance = me->GetDistance(victim);
+
+            me->StopMoving();
+            // 0 - 10 yards: move toward target and use melee weapon
+            if (distance <= 10.0f)
+            {
+                me->SetVirtualItem(0, WEAPON_MELEE);
+            }
+            else{
+                me->SetVirtualItem(0, WEAPON_RANGE);
+            }
+        }
+
+        void ExecuteEvent(uint32 eventId) override
+        {
+            switch (eventId)
+            {
+                case EVENT_SHOOT:
+                {
+                    Unit* victim = me->GetVictim();
+
+                    if (victim && me->GetDistance(victim) > 10.0f)
+                        DoCastVictim(SPELL_SHOOT);
+
+                    events.ScheduleEvent(EVENT_SHOOT, urand(2300, 3900));
+                    break;
+                }
+                case EVENT_CLEAVE:
+                    DoCastVictim(SPELL_CLEAVE);
+                    events.ScheduleEvent(EVENT_CLEAVE, urand(7000, 9000));
+                    break;
+
+                case EVENT_WAR_STOMP:
+                    DoCastSelf(SPELL_WAR_STOMP);
+                    events.ScheduleEvent(EVENT_WAR_STOMP, urand(17000, 22000));
+                    break;
+            }
+        }
+
+        void DamageTaken(Unit* attacker, uint32& damage) override
+        {
+            // Players are allowed to damage the creature below 80%.
+            if (attacker && attacker->IsPlayer())
+                return;
+
+            uint64 minimumHealth = me->CountPctFromMaxHealth(80);
+
+            //If the creature is below 80% set the HP to 80%
+            if (me->GetHealth() <= minimumHealth ||
+                me->GetHealth() - damage <= minimumHealth)
+            {
+                damage = 0;
+                me->SetHealth(minimumHealth);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+            {
+                if (Unit* nearestTarget = me->SelectNearestTarget(5.0f))
+                {
+                    AttackStart(nearestTarget);
+                }
+                return;
+            }
+
+            Unit* victim = me->GetVictim();
+
+            if (!victim || !victim->IsAlive())
+                return;
+
+            events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            CheckDistanceBehavior(victim);
+            while (uint32 eventId = events.ExecuteEvent())
+                ExecuteEvent(eventId);
+
+
+            DoMeleeAttackIfReady();
+        }
+    };
+};
+
+// NPC Bristleback Invader 36943
+class npc_bristleback_invader: public CreatureScript
+{
+public:
+    npc_bristleback_invader() : CreatureScript("npc_bristleback_invader") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_bristleback_invader_AI(creature);
+    }
+
+    struct npc_bristleback_invader_AI : public ScriptedAI
+    {
+        npc_bristleback_invader_AI(Creature* creature) : ScriptedAI(creature) { }
+
+        enum Spells
+        {
+            SPELL_BRISTLEBACK = 81653,
+            SPELL_REND        = 11977
+        };
+
+        enum Events
+        {
+            EVENT_REND = 1
+        };
+
+        void Reset() override
+        {
+            events.Reset();
+            DoCastSelf(SPELL_BRISTLEBACK);
+        }
+
+        void EnterCombat(Unit* /*who*/) override
+        {
+            events.ScheduleEvent(EVENT_REND, urand(2000, 4000));
+        }
+
+        void ExecuteEvent(uint32 eventId) override
+        {
+            switch (eventId)
+            {
+                case EVENT_REND:
+                    DoCastVictim(SPELL_REND);
+                    events.ScheduleEvent(EVENT_REND, urand(25000, 28000));
+                    break;
+            }
+        }
+
+        void DamageTaken(Unit* attacker, uint32& damage) override
+        {
+            // Players are allowed to damage the creature below 80%.
+            if (attacker && attacker->IsPlayer())
+                return;
+
+            uint64 minimumHealth = me->CountPctFromMaxHealth(80);
+
+            //If the creature is below 80% set the HP to 80%
+            if (me->GetHealth() <= minimumHealth ||
+                me->GetHealth() - damage <= minimumHealth)
+            {
+                damage = 0;
+                me->SetHealth(minimumHealth);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+                return;
+
+            events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = events.ExecuteEvent())
+                ExecuteEvent(eventId);
+
+            DoMeleeAttackIfReady();
+        }
+    };
+};
+
 void AddSC_mulgore()
 {
     RegisterCreatureAI(npc_agitated_earth_spirit);
     RegisterCreatureAI(npc_kyle_the_frenzied);
     new npc_eagle_spirit();
     RegisterSpellScript(spell_mulgore_funeral_offering);
+    new npc_fledgling_brave();
+    new npc_bristleback_invader();
 }
