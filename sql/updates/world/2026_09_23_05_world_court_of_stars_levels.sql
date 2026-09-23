@@ -1,0 +1,51 @@
+-- HavenCore: Court of Stars trash levels (Legion, level 110 content).
+-- These creatures do not use level scaling, so the server picks a random level between
+-- minlevel and maxlevel on every spawn: they appeared anywhere from 98 to 110. Court of
+-- Stars is a level 110 dungeon (8.3.7 client LFGDungeons: Normal / Heroic 110). Only these
+-- entries, and only while they still have exactly 98-110. Elites (111) and bosses (112/113)
+-- are already correct. Idempotent.
+-- Entries:
+--   104245 Arcane Beacon
+--   104247 Duskwatch Arcanist
+--   104694 Suramar Citizen
+--   104695 Suramar Merchant
+--   104696 Suramar Civilian
+--   105215 Discarded Junk
+--   105249 Nightshade Refreshments
+--   105410 Suramar Musician
+--   105719 Mana Saber
+--   105729 Signal Lantern
+--   106024 Magical Lantern
+--   106110 Waterlogged Scroll
+--   106296 Dusk Lily Agent
+--   106468 Ly\'leth Lunastre
+--   107141 Nightborne Boat
+--   107324 Suramar Child
+--   107435 Suspicious Noble
+--   107442 Suspicious Suramar Noble
+--   107470 Haughty Aristocrat
+--   107471 Wealthy Elite
+--   107472 Fancy Noble
+--   107486 Chatty Rumormonger
+--   107564 Conversation Stalker
+--   107756 Estate Attendant
+--   108406 Arcane Custodian
+--   108419 Automated Sweeper
+--   110958 Fancy Noble
+--   110959 Wealthy Elite
+--   110960 Haughty Aristocrat
+--   111362 Nightborne Boat
+--   111363 Nightborne Supplies
+--   111364 Nightborne Supplies
+--   111365 Nightborne Supplies
+--   111366 Nightborne Supplies
+--   111367 Suramar Dockworker
+--   111372 Suramar Dockworker
+--   111937 Dusk Lily Agent
+--   112697 Suspicious Noble
+--   112699 Suspicious Noble
+--   113617 Dusk Lily Agent
+
+UPDATE `creature_template` SET `minlevel` = 110, `maxlevel` = 110
+WHERE `minlevel` = 98 AND `maxlevel` = 110
+  AND `entry` IN (104245, 104247, 104694, 104695, 104696, 105215, 105249, 105410, 105719, 105729, 106024, 106110, 106296, 106468, 107141, 107324, 107435, 107442, 107470, 107471, 107472, 107486, 107564, 107756, 108406, 108419, 110958, 110959, 110960, 111362, 111363, 111364, 111365, 111366, 111367, 111372, 111937, 112697, 112699, 113617);
