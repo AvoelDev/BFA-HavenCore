@@ -371,6 +371,10 @@ void WorldSession::HandleClubFinderRequestClubsData(WorldPackets::ClubFinder::Cl
 
 void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets::ClubFinder::ClubFinderRequestSubscribedClubPostingIDs& request)
 {
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
     WorldPackets::ClubFinder::ClubFinderGetClubPostingIDsResponse response;
     response.Entries.reserve(request.ClubIDs.size());
 
@@ -384,6 +388,14 @@ void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets:
         {
             TC_LOG_INFO("guild", "[CF-SUBMAP] [%s] clubId=" UI64FMTD " -> no guild/empty guild",
                 GetPlayerInfo().c_str(), clubId);
+            continue;
+        }
+
+        // The client can retain an old Club ID after /gquit. Never map a former
+        // guild back to an own/subscribed posting for a non-member.
+        if (player->GetGuildId() != guild->GetId())
+        {
+            TC_LOG_INFO("guild", "[CF-SUBMAP] [%s] clubId=" UI64FMTD " -> no longer a member", GetPlayerInfo().c_str(), clubId);
             continue;
         }
 
@@ -537,6 +549,12 @@ void WorldSession::HandleClubFinderRequestPendingClubsList(WorldPackets::ClubFin
 
         Guild* guild = sGuildMgr->GetGuildByGuid(membershipRequest->GetGuildGuid());
         if (!guild)
+            continue;
+
+        // Retain Joined in the guild's applicant history, but it must not make
+        // a former member look as if they still belong to that guild.
+        if (membershipRequest->GetStatus() == WorldPackets::ClubFinder::RequestStatusJoined &&
+            player->GetGuildId() != guild->GetId())
             continue;
 
         response.Applications.push_back(BuildApplicationUpdate(guild, *membershipRequest));

@@ -3511,6 +3511,12 @@ void Guild::DeleteMember(CharacterDatabaseTransaction& trans, ObjectGuid guid, b
     // Keep retail ordering: the client receives GuildGUID = 0 first, then
     // ClubListener.OnUnsubscribe, then ClubMembershipListener.OnClubRemoved.
     Battlenet::NotifyGuildClubMemberRemoved(this, guid, isKicked, isDisbanding);
+
+    // Immediately refresh the former member's Finder application cache. The
+    // completed application stays in guild-side history but is not returned as
+    // an assertion of current membership.
+    if (player && !isDisbanding)
+        sClubFinderMgr->SendMembershipRequestListUpdate(player);
 }
 
 bool Guild::ChangeMemberRank(CharacterDatabaseTransaction& trans, ObjectGuid guid, uint8 newRank)

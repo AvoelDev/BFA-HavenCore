@@ -1081,6 +1081,14 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     pCurrChar->SendInitialPacketsAfterAddToMap();
 
+    // Offline Club Finder approvals are already persisted in ClubFinderMgr,
+    // but the applicant misses the live Approved update while logged out.
+    // Bootstrap the full applicant-side state during login (the same context
+    // 0x60 list returned by REQUEST_PENDING_CLUBS_LIST), so the invitation is
+    // available on opening J without manually visiting Guild Finder first.
+    if (!pCurrChar->GetGuildId())
+        sClubFinderMgr->SendMembershipRequestListUpdate(pCurrChar);
+
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_ONLINE);
     stmt->setUInt64(0, pCurrChar->GetGUID().GetCounter());
     CharacterDatabase.Execute(stmt);

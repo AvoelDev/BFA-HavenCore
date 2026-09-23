@@ -768,6 +768,12 @@ void ClubFinderMgr::SendMembershipRequestListUpdate(Player* player)
         if (!guild)
             continue;
 
+        // Keep historical Joined entries for recruiters, not as active
+        // membership in a former member's own Finder application list.
+        if (request->GetStatus() == WorldPackets::ClubFinder::RequestStatusJoined &&
+            player->GetGuildId() != guild->GetId())
+            continue;
+
         WorldPackets::ClubFinder::ClubFinderApplicationUpdate application;
         application.ClubFinderGUID = ClubFinderMgr::instance()->GetClubFinderGuid(guild);
         application.PlayerGUID = request->GetPlayerGUID();
