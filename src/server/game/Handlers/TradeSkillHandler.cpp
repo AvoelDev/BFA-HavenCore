@@ -31,7 +31,6 @@
 #include "WorldSession.h"
 #include "DB2Stores.h"
 #include "Guild.h"
-#include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "SpellMgr.h"
@@ -51,9 +50,6 @@ void WorldSession::HandleShowTradeSkill(WorldPacket& recvData)
     Player* target = ObjectAccessor::FindConnectedPlayer(playerGuid);
     if (!rootSkillId || !target || !target->HasSkill(rootSkillId))
     {
-        TC_LOG_INFO("guild", "[PROF-TRACE] CMSG_SHOW_TRADE_SKILL [%s] target=[%s] skillLine=%u root=%u -> no response (%s)",
-            GetPlayerInfo().c_str(), playerGuid.ToString().c_str(), skillLineId, rootSkillId,
-            !rootSkillId ? "not a profession" : (!target ? "target offline" : "target lacks skill"));
         return;
     }
 
@@ -110,9 +106,6 @@ void WorldSession::HandleShowTradeSkill(WorldPacket& recvData)
         data << maxRank;
     for (int32 ability : abilitySpells)
         data << ability;
-
-    TC_LOG_INFO("guild", "[PROF-TRACE] SMSG_SHOW_TRADE_SKILL_RESPONSE [%s] target=[%s] spell=%u root=%u skillLines=%u knownAbilities=%u",
-        GetPlayerInfo().c_str(), playerGuid.ToString().c_str(), spellId, rootSkillId, uint32(skillLines.size()), uint32(abilitySpells.size()));
 
     SendPacket(&data);
 }

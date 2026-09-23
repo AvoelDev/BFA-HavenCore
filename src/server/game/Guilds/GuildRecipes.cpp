@@ -78,15 +78,6 @@ namespace GuildRecipes
         return false;
     }
 
-    // [PROF-TRACE] temporary diagnostics helper; remove with the trace cleanup patch.
-    uint32 CountGuildRecipeBits(GuildRecipeMask const& mask)
-    {
-        uint32 bits = 0;
-        for (uint8 value : mask)
-            for (; value; value &= uint8(value - 1))
-                ++bits;
-        return bits;
-    }
 
     void AddSpellToGuildRecipeMasks(uint32 spellId, std::unordered_map<uint32, GuildRecipeMask>& masks)
     {

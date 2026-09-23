@@ -27,7 +27,6 @@
 #include "DB2Stores.h"
 #include "Guild.h"
 #include "GuildMgr.h"
-#include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "World.h"
@@ -50,11 +49,8 @@ void WorldSession::HandleGuildQueryRecipes(WorldPacket& recvData)
 
     Player* player = GetPlayer();
     Guild* guild = player ? player->GetGuild() : nullptr;
-    TC_LOG_INFO("guild", "[PROF-TRACE] CMSG_GUILD_QUERY_RECIPES [%s] requestGuild=[%s] playerGuild=[%s]",
-        GetPlayerInfo().c_str(), guildGuid.ToString().c_str(), guild ? guild->GetGUID().ToString().c_str() : "none");
     if (!player || !guild || guildGuid != guild->GetGUID())
     {
-        TC_LOG_INFO("guild", "[PROF-TRACE] QUERY_RECIPES rejected: guild missing or GUID mismatch");
         return;
     }
 
@@ -62,14 +58,12 @@ void WorldSession::HandleGuildQueryRecipes(WorldPacket& recvData)
     // (dependent, never saved) spells re-derived from skills, and live spells of
     // online members (covers recipes learned this session).
     std::unordered_set<uint32> knownSpells;
-    uint32 spellRows = 0;
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_GUILD_MEMBER_SPELLS);
     stmt->setUInt64(0, guild->GetId());
     if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
     {
         do
         {
-            ++spellRows;
             knownSpells.insert(result->Fetch()[1].GetUInt32());
         }
         while (result->NextRow());
@@ -107,8 +101,6 @@ void WorldSession::HandleGuildQueryRecipes(WorldPacket& recvData)
     for (auto const& recipe : recipes)
     {
         bool empty = std::all_of(recipe.second.begin(), recipe.second.end(), [](uint8 value) { return value == 0; });
-        TC_LOG_INFO("guild", "[PROF-TRACE] QUERY_RECIPES skillLine=%u bits=%u %s",
-            recipe.first, CountGuildRecipeBits(recipe.second), empty ? "(EMPTY - dropped)" : "(sent)");
         if (empty)
             continue;
 
@@ -117,8 +109,6 @@ void WorldSession::HandleGuildQueryRecipes(WorldPacket& recvData)
         ++count;
     }
     response.put<uint32>(countPos, count);
-    TC_LOG_INFO("guild", "[PROF-TRACE] SMSG_GUILD_KNOWN_RECIPES [%s] spellRows=%u knownSpells=%u skillLinesHit=%u entriesSent=%u",
-        GetPlayerInfo().c_str(), spellRows, uint32(knownSpells.size()), uint32(recipes.size()), count);
     SendPacket(&response);
 }
 
@@ -194,8 +184,6 @@ void WorldSession::HandleGuildQueryMembersForRecipe(WorldPacket& recvData)
     guild->BroadcastWorker(applyOnline);
 
     std::vector<ObjectGuid> members(crafters.begin(), crafters.end());
-    TC_LOG_INFO("guild", "[PROF-TRACE] SMSG_GUILD_MEMBERS_WITH_RECIPE [%s] skillLine=%u spell=%u crafters=%u",
-        GetPlayerInfo().c_str(), skillLineId, spellId, uint32(members.size()));
 
     WorldPacket response(SMSG_GUILD_MEMBERS_WITH_RECIPE, 12 + members.size() * 16);
     response << uint32(skillLineId);
@@ -215,11 +203,8 @@ void WorldSession::HandleGuildQueryMemberRecipes(WorldPacket& recvData)
 
     Player* player = GetPlayer();
     Guild* guild = player ? player->GetGuild() : nullptr;
-    TC_LOG_INFO("guild", "[PROF-TRACE] CMSG_GUILD_QUERY_MEMBER_RECIPES [%s] member=[%s] guild=[%s] skillLine=%u root=%u",
-        GetPlayerInfo().c_str(), memberGuid.ToString().c_str(), guildGuid.ToString().c_str(), skillLineId, GetRootProfessionSkillLine(skillLineId));
     if (!player || !guild || guildGuid != guild->GetGUID() || !guild->IsMember(memberGuid) || !GetRootProfessionSkillLine(skillLineId))
     {
-        TC_LOG_INFO("guild", "[PROF-TRACE] QUERY_MEMBER_RECIPES rejected: guild/member/skill line check failed");
         return;
     }
 
@@ -235,7 +220,6 @@ void WorldSession::HandleGuildQueryMemberRecipes(WorldPacket& recvData)
         Guild::AppendOfflineKnownSpells(memberGuid, guild->GetId(), knownSpells);
 
     GuildRecipeMask mask{};
-    uint32 knownAbilities = 0;
     {
         for (uint32 spellId : knownSpells)
         {
@@ -248,11 +232,7 @@ void WorldSession::HandleGuildQueryMemberRecipes(WorldPacket& recvData)
                 if (!ability || GetRootProfessionSkillLine(uint32(ability->SkillLine)) != requestedRoot)
                     continue;
 
-                if (SetAbilityRecipeBit(ability, mask))
-                {
-                    TC_LOG_INFO("guild", "[PROF-TRACE] MEMBER_RECIPES bit=%d spell=%u", int32(ability->UniqueBit), spellId);
-                    ++knownAbilities;
-                }
+                SetAbilityRecipeBit(ability, mask);
                 break;
             }
         }
@@ -294,8 +274,6 @@ void WorldSession::HandleGuildQueryMemberRecipes(WorldPacket& recvData)
         while (result->NextRow());
     }
 
-    TC_LOG_INFO("guild", "[PROF-TRACE] SMSG_GUILD_MEMBER_RECIPES member=[%s] skillLine=%u rank=%d step=%d bits=%u knownAbilities=%u",
-        memberGuid.ToString().c_str(), skillLineId, skillRank, skillStep, CountGuildRecipeBits(mask), knownAbilities);
     WorldPacket response(SMSG_GUILD_MEMBER_RECIPES, 16 + GUILD_RECIPE_MASK_SIZE);
     response << memberGuid;
     response << uint32(skillLineId);

@@ -1681,12 +1681,6 @@ void Guild::HandleRoster(WorldSession* session)
         memberData.Name = member->GetName();
         memberData.Note = member->GetPublicNote();
         memberData.OfficerNote = member->GetOfficerNote();
-
-        TC_LOG_INFO("guild", "[PROF-TRACE] ROSTER member=%s prof0={DbID=%d Rank=%d Step=%d} prof1={DbID=%d Rank=%d Step=%d}",
-            memberData.Name.c_str(),
-            memberData.Profession[0].DbID, memberData.Profession[0].Rank, memberData.Profession[0].Step,
-            memberData.Profession[1].DbID, memberData.Profession[1].Rank, memberData.Profession[1].Step);
-
         roster.MemberData.push_back(memberData);
     }
 

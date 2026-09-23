@@ -49,8 +49,6 @@ namespace GuildRecipes
     bool SetGuildRecipeBit(uint32 skillLineId, uint32 spellId, GuildRecipeMask& mask);
     void AddSpellToGuildRecipeMasks(uint32 spellId, std::unordered_map<uint32, GuildRecipeMask>& masks);
 
-    // [PROF-TRACE] diagnostics only.
-    uint32 CountGuildRecipeBits(GuildRecipeMask const& mask);
 }
 
 #endif // HAVEN_GUILD_RECIPES_H
