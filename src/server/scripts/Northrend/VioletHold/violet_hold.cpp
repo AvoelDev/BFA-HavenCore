@@ -646,7 +646,7 @@ struct npc_violet_hold_teleportation_portal_commonAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* /*who*/) override { }
 
-    void EnterCombat(Unit* /*who*/) override { }
+    void JustEngagedWith(Unit* /*who*/) override { }
 
     void JustSummoned(Creature* summon) override
     {
@@ -906,9 +906,9 @@ struct violet_hold_trashAI : public npc_escortAI
             CreatureStartAttackDoor();
     }
 
-    void EnterCombat(Unit* who) override
+    void JustEngagedWith(Unit* who) override
     {
-        npc_escortAI::EnterCombat(who);
+        npc_escortAI::JustEngagedWith(who);
         ScheduledTasks();
     }
 
@@ -1124,7 +1124,7 @@ class npc_azure_stalker : public CreatureScript
 
                     task.Schedule(Milliseconds(1300), [this](TaskContext /*task*/)
                     {
-                        if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 5.0f))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 5.0f))
                             DoCast(target, SPELL_BACKSTAB);
                     });
 

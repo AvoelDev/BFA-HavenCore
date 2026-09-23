@@ -315,7 +315,7 @@ public:
                     me->SetFullHealth();
                     me->RemoveAllAuras();
                     me->CombatStop(false);
-                    me->DeleteThreatList();
+                    me->GetThreatManager().ClearAllThreat();
                     eventActive = false;
 
                     DespawnMinions();
@@ -451,7 +451,7 @@ public:
         Position homePosition;
         Creature* omnotron;
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if(isFirstTron)
             {
@@ -610,7 +610,7 @@ public:
                     { // is First Tron
                         me->SetReactState(REACT_AGGRESSIVE);
                         me->RemoveAllAuras();
-                        me->DeleteThreatList();
+                        me->GetThreatManager().ClearAllThreat();
                         me->CombatStop(true);
                         me->AttackStop();
                         if(instance)
@@ -625,7 +625,7 @@ public:
                 case ACTION_DEACTIVATE:
                     me->SetReactState(REACT_PASSIVE);
                     me->AttackStop();
-                    me->DeleteThreatList();
+                    me->GetThreatManager().ClearAllThreat();
                     me->CombatStop(true);
                     me->RemoveAllAuras();
                     if(instance)
@@ -654,7 +654,7 @@ public:
             {
                 me->SetReactState(REACT_PASSIVE);
                 me->AttackStop();
-                me->DeleteThreatList();
+                me->GetThreatManager().ClearAllThreat();
                 me->CombatStop(true);
                 me->RemoveAllAuras();
                 activated = false;
@@ -951,7 +951,7 @@ public:
             me->SetReactState(REACT_PASSIVE);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             uiDespawn = 30000;
             DoCast(me, SPELL_CLOUD);
@@ -992,7 +992,7 @@ public:
             me->SetReactState(REACT_PASSIVE);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             uiDespawn = 60000;
             DoCast(me, SPELL_POWER_GENERATOR_AURA);

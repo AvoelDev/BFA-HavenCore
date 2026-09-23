@@ -702,7 +702,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void JustDied(Unit* /*slayer*/) override;
 
         void UpdateAI(uint32 diff) override
@@ -1230,8 +1230,7 @@ class go_wind_stone : public GameObjectScript
                     break;
             }
             summons->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-            summons->SendMeleeAttackStart(player);
-            summons->CombatStart(player);
+            summons->EngageWithTarget(player);
         }
 
     public:

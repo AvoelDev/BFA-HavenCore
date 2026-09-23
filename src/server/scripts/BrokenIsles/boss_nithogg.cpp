@@ -83,7 +83,7 @@ struct boss_nithogg : public WorldBossAI
         events.Reset();
     }
 
-    void EnterCombat(Unit* who) override
+    void JustEngagedWith(Unit* who) override
     {
         if (!who)
             return;
@@ -154,7 +154,7 @@ struct boss_nithogg : public WorldBossAI
             {
                 case EVENT_TAIL_LASH:
                 {
-                    for (auto itr : me->getThreatManager().getThreatList())
+                    for (auto itr : me->GetThreatManager().getThreatList())
                     {
                         if (!itr->getTarget())
                             continue;

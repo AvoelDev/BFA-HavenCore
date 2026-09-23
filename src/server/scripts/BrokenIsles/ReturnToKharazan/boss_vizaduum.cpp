@@ -174,10 +174,10 @@ class boss_vizaduum : public CreatureScript
                 _Reset();
             }
 
-            void EnterCombat(Unit* /**/) override
+            void JustEngagedWith(Unit* /**/) override
             {
                 me->SetReactState(REACT_AGGRESSIVE);
-                _EnterCombat();
+                _JustEngagedWith();
                 _times = 1;
                 instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
                 events.ScheduleEvent(EVENT_DISINTEGRATE, Seconds(8));
@@ -390,7 +390,7 @@ class boss_vizaduum : public CreatureScript
 
                         for (uint8 i = 0; i < _times; ++i)
                         {
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true, -SPELL_CHAOTIC_SHADOWS))
+                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true, true, -SPELL_CHAOTIC_SHADOWS))
                                 DoCast(target, SPELL_CHAOTIC_SHADOWS);
                         }
 

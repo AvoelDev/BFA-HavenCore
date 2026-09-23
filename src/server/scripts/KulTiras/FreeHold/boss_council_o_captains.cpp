@@ -279,7 +279,7 @@ struct boss_council_captain : public BossAI
         me->AddUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
         me->InterruptNonMeleeSpells(true);
         me->SetReactState(ReactStates::REACT_PASSIVE);
-        me->DeleteThreatList();
+        me->GetThreatManager().ClearAllThreat();
         me->GetMotionMaster()->Clear();
         me->GetMotionMaster()->MoveTargetedHome();
 
@@ -295,7 +295,7 @@ struct boss_council_captain : public BossAI
         Reset();
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         if (instance)
         {
@@ -309,7 +309,7 @@ struct boss_council_captain : public BossAI
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me, 1);
         }
         me->setActive(true);
-        CaptainEnterCombat();
+        CaptainJustEngagedWith();
         reset = true;
 
         switch (me->GetEntry())
@@ -611,7 +611,7 @@ private:
         }
     }
 
-    void CaptainEnterCombat()
+    void CaptainJustEngagedWith()
     {
         if (Creature* jolly = m_Instance->instance->GetCreature(m_Instance->GetGuidData(FreeholdCreature::NpcCaptainJolly)))
         {
@@ -696,7 +696,7 @@ struct npc_rummy_mancomb : public ScriptedAI
             me->SetReactState(REACT_PASSIVE);
             me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
             events.Reset();
-            me->DeleteThreatList();
+            me->GetThreatManager().ClearAllThreat();
             break;
         }
         }

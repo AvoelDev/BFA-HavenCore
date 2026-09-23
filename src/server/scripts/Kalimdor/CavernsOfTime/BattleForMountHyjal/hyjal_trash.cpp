@@ -441,7 +441,7 @@ public:
             imol = false;
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void WaypointReached(uint32 waypointId) override
         {
@@ -451,7 +451,7 @@ public:
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
             }
         }
@@ -487,7 +487,7 @@ public:
                     {
                         Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                         if (target && target->IsAlive())
-                            me->AddThreat(target, 0.0f);
+                            AddThreat(target, 0.0f);
                     } else if (instance->GetData(DATA_ALLIANCE_RETREAT) && instance->GetData(DATA_HORDE_RETREAT)){
                         //do overrun
                     }
@@ -564,13 +564,13 @@ public:
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
                 else
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
             }
             if (waypointId == LastOverronPos && IsOverrun)
@@ -582,7 +582,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -662,13 +662,13 @@ public:
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
                 else
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
             }
             if (waypointId == LastOverronPos && IsOverrun)
@@ -681,7 +681,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -772,13 +772,13 @@ public:
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
                 else
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
             }
         }
@@ -801,7 +801,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -885,18 +885,18 @@ public:
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
                 else
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -981,18 +981,18 @@ public:
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
                 else
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -1067,18 +1067,18 @@ public:
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
                 else
                 {
                     Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                     if (target && target->IsAlive())
-                        me->AddThreat(target, 0.0f);
+                        AddThreat(target, 0.0f);
                 }
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -1160,7 +1160,7 @@ public:
                 Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                 if (target && target->IsAlive())
                 {
-                    me->AddThreat(target, 0.0f);
+                    AddThreat(target, 0.0f);
                     DoCast(target, SPELL_FROST_BREATH, true);
                 }
             }
@@ -1178,7 +1178,7 @@ public:
             me->SetPosition(x, y, z, 0);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -1281,7 +1281,7 @@ public:
                 Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_THRALL));
                 if (target && target->IsAlive())
                 {
-                    me->AddThreat(target, 0.0f);
+                    AddThreat(target, 0.0f);
                     DoCast(target, SPELL_GARGOYLE_STRIKE, true);
                 }
             }
@@ -1424,7 +1424,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
         }
 

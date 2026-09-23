@@ -84,9 +84,9 @@ class boss_buru : public CreatureScript
                 Eggs.clear();
             }
 
-            void EnterCombat(Unit* who) override
+            void JustEngagedWith(Unit* who) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 Talk(EMOTE_TARGET, who);
                 DoCast(me, SPELL_THORNS);
 
@@ -122,7 +122,7 @@ class boss_buru : public CreatureScript
 
                 if (Unit* victim = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
                 {
-                    DoResetThreat();
+                    ResetThreatList();
                     AttackStart(victim);
                     Talk(EMOTE_TARGET, victim);
                 }
@@ -207,7 +207,7 @@ class npc_buru_egg : public CreatureScript
                 SetCombatMovement(false);
             }
 
-            void EnterCombat(Unit* attacker) override
+            void JustEngagedWith(Unit* attacker) override
             {
                 if (Creature* buru = ObjectAccessor::GetCreature(*me, _instance->GetGuidData(DATA_BURU)))
                     if (!buru->IsInCombat())

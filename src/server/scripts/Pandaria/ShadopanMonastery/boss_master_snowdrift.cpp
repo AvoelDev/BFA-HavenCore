@@ -164,7 +164,7 @@ class boss_master_snowdrift : public CreatureScript
                 SetCanSeeEvenInPassiveMode(true);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 pInstance->SetBossState(DATA_MASTER_SNOWDRIFT, IN_PROGRESS);
                 initDefaultEventsForPhase();
@@ -351,7 +351,7 @@ class boss_master_snowdrift : public CreatureScript
                         events.ScheduleEvent(EVENT_TORNADO_KICK, urand(7500, 12500));
                         break;
                     case EVENT_FIST_OF_FURY:
-                        if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT))
                             me->CastSpell(target, SPELL_FIST_OF_FURY, false);
 
                         events.ScheduleEvent(EVENT_FIST_OF_FURY, urand(5000, 10000));

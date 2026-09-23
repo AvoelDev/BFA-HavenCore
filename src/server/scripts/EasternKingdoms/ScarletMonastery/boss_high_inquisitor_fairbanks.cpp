@@ -82,7 +82,7 @@ public:
             instance->SetBossState(DATA_HIGH_INQUISITOR_FAIRBANKS, NOT_STARTED);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             me->SetStandState(UNIT_STAND_STATE_STAND);
             instance->SetBossState(DATA_HIGH_INQUISITOR_FAIRBANKS, IN_PROGRESS);
@@ -119,7 +119,7 @@ public:
             //Sleep_Timer
             if (Sleep_Timer <= diff)
             {
-                if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0))
+                if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0))
                     DoCast(target, SPELL_SLEEP);
 
                 Sleep_Timer = 30000;

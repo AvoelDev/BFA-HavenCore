@@ -559,7 +559,7 @@ public:
                 DoCast(caster, SPELL_MONK_RIDE_POLE, true);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             _events.ScheduleEvent(EVENT_THROW_ROCK, 0);
         }
@@ -653,7 +653,7 @@ public:
 
         void ClearThreadList()
         {
-            std::list<HostileReference*> threatList = me->getThreatManager().getThreatList();;
+            std::list<HostileReference*> threatList = me->GetThreatManager().getThreatList();;
             for (std::list<HostileReference*>::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
                 if (Unit* target = (*itr)->getTarget()->ToUnit())
                     target->ClearInCombat();
@@ -1307,7 +1307,7 @@ public:
             _events.Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             _events.ScheduleEvent(EVENT_AIM, 10000);
             _events.ScheduleEvent(EVENT_OOKSPLOSIONS, 30000);
@@ -1554,7 +1554,7 @@ private:
         me->GetMotionMaster()->MovePoint(0, ZhaoPos[0].GetPositionX(), ZhaoPos[0].GetPositionY(), ZhaoPos[0].GetPositionZ());
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         me->GetMotionMaster()->MovePath(ZHAOREN_PATH, true);
         events.SetPhase(PHASE_FLYING);
@@ -1579,7 +1579,7 @@ private:
     void KilledUnit(Unit* who) override
     {
         if (who->IsPlayer())
-            if (me->getThreatManager().getThreatList().empty())
+            if (me->GetThreatManager().getThreatList().empty())
                 me->ForcedDespawn(0, 10s);
     }
 
@@ -1625,7 +1625,7 @@ private:
             {
             case EVENT_LIGHTNING:
             {
-                std::list<HostileReference*> threatList = me->getThreatManager().getThreatList();
+                std::list<HostileReference*> threatList = me->GetThreatManager().getThreatList();
                 if (!threatList.empty())
                 {
                     for (HostileReference* ref : threatList)
@@ -1968,7 +1968,7 @@ public:
                     AttackStart(creature);
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             who->GetAI()->AttackStart(me);
             _events.ScheduleEvent(EVENT_TEMPERED_FURY, urand(2000, 4000));
@@ -2145,7 +2145,7 @@ public:
             PhasingHandler::AddPhase(me, 543, true);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             _events.ScheduleEvent(EVENT_SMASH, 8000);
             _events.ScheduleEvent(EVENT_RUPTURE, urand(12000, 16000));
@@ -2173,7 +2173,7 @@ public:
             if (damage >= me->GetHealth())
             {
                 std::list<HostileReference*> threatList;
-                threatList = me->getThreatManager().getThreatList();
+                threatList = me->GetThreatManager().getThreatList();
                 for (std::list<HostileReference*>::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
                     if (Player* target = (*itr)->getTarget()->ToPlayer())
                         if (target->GetQuestStatus(QUEST_AN_ANCIENT_EVIL) == QUEST_STATUS_INCOMPLETE)
@@ -2760,7 +2760,7 @@ public:
             events.RescheduleEvent(EVENT_2, 5000);
         }
 
-        void EnterCombat(Unit* /*unit*/)
+        void JustEngagedWith(Unit* /*unit*/)
         {
             events.RescheduleEvent(EVENT_1, 5000);
             events.CancelEvent(EVENT_2);
@@ -2920,7 +2920,7 @@ public:
         bool isInFalcon;
         bool fightEnd;
 
-        void EnterCombat(Unit* /*unit*/)
+        void JustEngagedWith(Unit* /*unit*/)
         {
             events.RescheduleEvent(EVENT_JAOMIN_JUMP, 1000);
             events.RescheduleEvent(EVENT_HIT_CIRCLE, 2000);

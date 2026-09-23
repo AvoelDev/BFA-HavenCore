@@ -210,7 +210,7 @@ class boss_bethtilac : public CreatureScript
                 Reset();
             }
 
-            void EnterCombat(Unit* /*attacker*/) override
+            void JustEngagedWith(Unit* /*attacker*/) override
             {
                 uiPhase = PHASE_HIGH;
                 uiCount = 0;
@@ -269,12 +269,12 @@ class boss_bethtilac : public CreatureScript
                 if (uiPhase == PHASE_HIGH)
                 {
                     if (victim->GetPositionZ() < 100.0f)
-                        DoModifyThreatPercent(victim, -100);
+                        ModifyThreatByPercent(victim, -100);
                 }
                 else
                 {
                     if (victim->GetPositionZ() > 100.0f)
-                        DoModifyThreatPercent(victim, -100);
+                        ModifyThreatByPercent(victim, -100);
                 }
             }
 
@@ -551,7 +551,7 @@ class npc_bethtilac_cinderweb_spinner : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_BURNING_ACID, urand(7000, 15000));
                 if (IsHeroic())
@@ -667,7 +667,7 @@ class npc_bethtilac_cinderweb_drone : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_BURNING_ACID, urand(7000, 15000));
                 events.ScheduleEvent(EVENT_BOILING_SPATTER, urand(14000, 20000));
@@ -702,16 +702,16 @@ class npc_bethtilac_cinderweb_drone : public CreatureScript
                             {
                                 me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
                                 me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, true);
-                                DoResetThreat();
+                                ResetThreatList();
                                 DoCast(me, SPELL_FIXATE_SELF, true);
                                 DoCast(pTarget, SPELL_FIXATE, true);
-                                me->AddThreat(pTarget, 1000000.0f);
+                                me->GetThreatManager().AddThreat(pTarget, 1000000.0f);
                                 AttackStart(pTarget);
                                 events.ScheduleEvent(EVENT_FIXATE_OFF, 10000);
                             }
                             break;
                         case EVENT_FIXATE_OFF:
-                            DoResetThreat();
+                            ResetThreatList();
                             me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, false);
                             me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, false);
                             break;
@@ -765,7 +765,7 @@ class npc_bethtilac_cinderweb_spiderling : public CreatureScript
             Unit* pDrone;
             EventMap events;
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_CHECK_DRONE, 2000);
             }
@@ -841,7 +841,7 @@ class npc_bethtilac_engorged_broodling : public CreatureScript
 
             bool bBurst;
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 bBurst = false;
             }

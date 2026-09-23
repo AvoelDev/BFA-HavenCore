@@ -80,7 +80,7 @@ public:
                 instance->SetData(DATA_RAGEWINTERCHILLEVENT, NOT_STARTED);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (IsEvent)
                 instance->SetData(DATA_RAGEWINTERCHILLEVENT, IN_PROGRESS);
@@ -98,7 +98,7 @@ public:
             {
                 Unit* target = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_JAINAPROUDMOORE));
                 if (target && target->IsAlive())
-                    me->AddThreat(target, 0.0f);
+                    AddThreat(target, 0.0f);
             }
         }
 

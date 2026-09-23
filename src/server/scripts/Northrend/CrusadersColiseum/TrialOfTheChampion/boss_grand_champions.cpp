@@ -114,7 +114,7 @@ void AggroAllPlayers(Creature* temp)
                 temp->SetReactState(REACT_AGGRESSIVE);
                 temp->SetInCombatWith(player);
                 player->SetInCombatWith(temp);
-                temp->AddThreat(player, 0.0f);
+                temp->GetThreatManager().AddThreat(player, 0.0f);
             }
         }
     }
@@ -226,7 +226,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoCastSpellShield();
         }
@@ -262,8 +262,8 @@ public:
                         Player* player = itr->GetSource();
                         if (player && !player->IsGameMaster() && me->IsInRange(player, 8.0f, 25.0f, false))
                         {
-                            DoResetThreat();
-                            me->AddThreat(player, 1.0f);
+                            ResetThreatList();
+                            me->GetThreatManager().AddThreat(player, 1.0f);
                             DoCast(player, SPELL_CHARGE);
                             break;
                         }
@@ -408,8 +408,8 @@ public:
                         Player* player = itr->GetSource();
                         if (player && !player->IsGameMaster() && me->IsInRange(player, 8.0f, 25.0f, false))
                         {
-                            DoResetThreat();
-                            me->AddThreat(player, 5.0f);
+                            ResetThreatList();
+                            me->GetThreatManager().AddThreat(player, 5.0f);
                             DoCast(player, SPELL_INTERCEPT);
                             break;
                         }
@@ -638,7 +638,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             DoCast(me, SPELL_EARTH_SHIELD);
             DoCast(who, SPELL_HEX_OF_MENDING);
@@ -846,7 +846,7 @@ public:
 
             if (uiShootTimer <= uiDiff)
             {
-                if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 30.0f))
+                if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 30.0f))
                 {
                     uiTargetGUID = target->GetGUID();
                     DoCast(target, SPELL_SHOOT);

@@ -103,10 +103,10 @@ struct boss_xanesh : public BossAI
 		me->SetPower(POWER_ENERGY, 0);
 	}
 
-	void EnterCombat(Unit* /*who*/) override
+	void JustEngagedWith(Unit* /*who*/) override
 	{
 		Talk(SAY_AGGRO);
-		_EnterCombat();
+		_JustEngagedWith();
 		if (IsHeroic() || IsMythic())
 			events.ScheduleEvent(EVENT_OBELISKS, 5s);
 		events.ScheduleEvent(EVENT_ABYSSAL_STRIKE, 10s);
@@ -124,7 +124,7 @@ struct boss_xanesh : public BossAI
 		{
 		case EVENT_ABYSSAL_STRIKE:
 			Talk(SAY_ABYSSAL_STRIKE);
-			if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.0f, true))
+			if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.0f, true))
 				me->CastSpell(target, SPELL_ABYSSAL_STRIKE, false);
 			events.Repeat(45s);
 			break;
@@ -135,7 +135,7 @@ struct boss_xanesh : public BossAI
 			if (IsMythic())
 			{
 				UnitList tarlist;
-				SelectTargetList(tarlist, 6, SELECT_TARGET_RANDOM, 100.0f);
+				SelectTargetList(tarlist, 6, SELECT_TARGET_RANDOM, 0, 100.0f);
 				for (Unit* targets : tarlist)
 				{
 					me->CastSpell(targets, SPELL_SOUL_FLY_DEBUFF, true);
@@ -145,7 +145,7 @@ struct boss_xanesh : public BossAI
 			else
 			{
 				UnitList tarlist;
-				SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 100.0f);
+				SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 0, 100.0f);
 				for (Unit* targets : tarlist)
 				{
 					me->CastSpell(targets, SPELL_SOUL_FLY_DEBUFF, true);
@@ -418,7 +418,7 @@ struct npc_flayed_soul : public ScriptedAI
 		DoZoneInCombat(nullptr);		
 	}
 
-	void EnterCombat(Unit* /*who*/) override
+	void JustEngagedWith(Unit* /*who*/) override
 	{
 		me->CastSpell(nullptr, SPELL_SOUL_FLY, false);
 	}

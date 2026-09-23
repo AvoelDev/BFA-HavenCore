@@ -68,7 +68,7 @@ namespace Instances { namespace Bloodmaul
                     }
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     me->RemoveAura(uint32(Spells::SubmergeVisual));
                     me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_UNK_6 | UNIT_FLAG_UNK_15 | UNIT_FLAG_NOT_SELECTABLE));
@@ -132,9 +132,9 @@ namespace Instances { namespace Bloodmaul
 
                 EventMap m_Events;
 
-                void EnterCombat(Unit* target) override
+                void JustEngagedWith(Unit* target) override
                 {
-                    me->getThreatManager().addThreat(target, 1000.0f);
+                    me->GetThreatManager().AddThreat(target, 1000.0f);
 
                     m_Events.Reset();
 
@@ -198,7 +198,7 @@ namespace Instances { namespace Bloodmaul
                     AttackStartCaster(victim, 15.0f);
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     events.ScheduleEvent(uint32(Events::BloodRage), urand(10000, 12000));
                 }
@@ -260,7 +260,7 @@ namespace Instances { namespace Bloodmaul
                     events.Reset();
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     events.ScheduleEvent(uint32(Events::Cleave), urand(500, 1500));
                     events.ScheduleEvent(uint32(Events::FrighteningRoar), urand(14000, 16000));
@@ -331,7 +331,7 @@ namespace Instances { namespace Bloodmaul
                     AttackStartCaster(victim, 15.0f);
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     events.ScheduleEvent(uint32(Events::StoneBulwark), urand(6000, 7000));
                 }
@@ -469,7 +469,7 @@ namespace Instances { namespace Bloodmaul
                     events.ScheduleEvent((uint32)Events::EVENT_MOVE,            7000);
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     events.ScheduleEvent(uint32(Events::SuppresionField), urand(500, 1500));
                     events.ScheduleEvent(uint32(Events::Subjugate), urand(15000, 17000));
@@ -635,7 +635,7 @@ namespace Instances { namespace Bloodmaul
                     events.Reset();
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     events.ScheduleEvent(uint32(Events::ChainGrip), urand(500, 1500));
                     events.ScheduleEvent(uint32(Events::ShockBola), urand(15000, 17000));
@@ -655,7 +655,7 @@ namespace Instances { namespace Bloodmaul
                     switch (events.ExecuteEvent())
                     {
                         case uint32(Events::ChainGrip):
-                            if (Unit* l_Plr = SelectTarget(SELECT_TARGET_FARTHEST, 0, 5.0f))
+                            if (Unit* l_Plr = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 5.0f))
                                 me->CastSpell(l_Plr, uint32(Spells::ChainGrip));
                             events.ScheduleEvent(uint32(Events::ChainGrip), urand(16000, 18000));
                             break;
@@ -714,7 +714,7 @@ namespace Instances { namespace Bloodmaul
                     m_TargetGUID = ObjectGuid::Empty;
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     events.ScheduleEvent(uint32(Events::Beatdown), urand(500, 1500));
                     events.ScheduleEvent(uint32(Events::Crush), urand(4500, 5500));
@@ -761,7 +761,7 @@ namespace Instances { namespace Bloodmaul
                             events.ScheduleEvent(uint32(Events::Crush), urand(10000, 11000));
                             break;
                         case uint32(Events::LumberingLeap):
-                            if (Unit* l_Plr = SelectTarget(SELECT_TARGET_FARTHEST, 0, 8.0f))
+                            if (Unit* l_Plr = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 8.0f))
                             {
                                 m_TargetGUID = l_Plr->GetGUID();
                                 me->CastSpell(l_Plr, uint32(Spells::LumberingLeap));
@@ -808,7 +808,7 @@ namespace Instances { namespace Bloodmaul
                     m_Events.Reset();
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     m_Events.ScheduleEvent(eEvents::EventColossalRoar, 5000);
                     m_Events.ScheduleEvent(eEvents::EventMassiveStomp, 9000);
@@ -877,7 +877,7 @@ namespace Instances { namespace Bloodmaul
                     m_Events.Reset();
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     m_Events.ScheduleEvent(eEvents::EventChannelFlames, 5000);
                     m_Events.ScheduleEvent(eEvents::EventExplodingFlames, 10000);
@@ -978,7 +978,7 @@ namespace Instances { namespace Bloodmaul
                     m_Events.Reset();
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     m_Events.ScheduleEvent(Events::EventLavaArc, 3000);
                 }
@@ -1053,7 +1053,7 @@ namespace Instances { namespace Bloodmaul
                         m_IsHC = false;
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     m_Events.ScheduleEvent(Events::EventArmorDent, 3000);
                 }
@@ -1117,7 +1117,7 @@ namespace Instances { namespace Bloodmaul
                 {
                 }
 
-                void EnterCombat(Unit*) override
+                void JustEngagedWith(Unit*) override
                 {
                     me->CastSpell(me, Spells::SpellPillarOfFlames, true);
                 }

@@ -142,12 +142,12 @@ private:
         }
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         switch (me->GetEntry())
         {
         case NPC_MARA_GRIMFANG:
-            _EnterCombat();
+            _JustEngagedWith();
             Talk(0);
             DoCast(PERIODIC_ENERGY_GAIN);
             events.ScheduleEvent(EVENT_WHIRLING_JADE_STORM, 3s);
@@ -164,7 +164,7 @@ private:
             break;
 
         case NPC_ANATHOS_FIRECALLER:
-            _EnterCombat();
+            _JustEngagedWith();
             me->GetScheduler().Schedule(4s, [this](TaskContext /*context*/)
             {
                 Talk(0);
@@ -240,11 +240,11 @@ private:
             break;
 
        case NPC_SPIRIT_OF_XUEN:            
-            if (Unit* tar = SelectTarget(SELECT_TARGET_FARTHEST, 0, 500.0f, true))
+            if (Unit* tar = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 500.0f, true))
             {
                  summon->GetMotionMaster()->MoveChase(tar, 500.0f, PET_FOLLOW_ANGLE);
                  summon->AI()->AttackStart(tar);
-                 summon->AddThreat(tar, 1000.0f, SpellSchoolMask::SPELL_SCHOOL_MASK_NORMAL);
+                 summon->GetThreatManager().AddThreat(tar, 1000.0f);
                  if (tar->HasAura(285632))
                      return;
                  else
@@ -310,7 +310,7 @@ private:
            {
                Talk(0);
                UnitList tarlist;
-               SelectTargetList(tarlist, 5, SELECT_TARGET_RANDOM, 100.0f, true);
+               SelectTargetList(tarlist, 5, SELECT_TARGET_RANDOM, 0, 100.0f, true);
                for (Unit* tar : tarlist)
                DoCast(tar, SEARING_EMBERS);
            }      

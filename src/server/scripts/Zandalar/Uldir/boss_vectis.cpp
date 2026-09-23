@@ -165,9 +165,9 @@ private:
         CleanEncounter(instance, me);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
         Talk(SAY_AGGRO);
         this->phase = 1;
         events.ScheduleEvent(EVENT_GESTATE, 9s);
@@ -184,8 +184,8 @@ private:
         {
             if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
             {
-                summon->getThreatManager().resetAllAggro();
-                summon->getThreatManager().addThreat(target, 1000000.0f);
+                summon->GetThreatManager().resetAllAggro();
+                summon->GetThreatManager().AddThreat(target, 1000000.0f);
                 summon->GetMotionMaster()->MoveChase(target);
             }
         }
@@ -219,7 +219,7 @@ private:
             }
             case EVENT_EVOLVING_AFFLICTION:
             {
-                if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.0f, true))
+                if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.0f, true))
                     me->CastSpell(target, SPELL_EVOLVING_AFFLICTION, true);
                 events.Repeat(9500);
                 break;
@@ -288,7 +288,7 @@ struct npc_plague_amalgam : public ScriptedAI
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         events.ScheduleEvent(EVENT_IMMUNOSUPPRESSION, 5s);
     }
@@ -751,7 +751,7 @@ struct npc_engorged_parasite : public ScriptedAI
         ScriptedAI::Reset();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         me->SetPowerType(POWER_ENERGY);
         me->SetPower(POWER_ENERGY, 0);

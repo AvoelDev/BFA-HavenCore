@@ -161,9 +161,9 @@ public:
             instance->DoStopCriteriaTimer(CRITERIA_TIMED_TYPE_EVENT, ACHIEV_TIMED_START_EVENT);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
             Talk(SAY_AGGRO);
             events.ScheduleEvent(EVENT_FLAME_BREATH, urand(10000, 20000));
             events.ScheduleEvent(EVENT_TAIL_SWEEP, urand(15000, 20000));
@@ -237,7 +237,7 @@ public:
                         // tank selection based on phase one. If tank is not there i take nearest one
                         if (Unit* tank = ObjectAccessor::GetUnit(*me, tankGUID))
                             me->GetMotionMaster()->MoveChase(tank);
-                        else if (Unit* newtarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+                        else if (Unit* newtarget = SelectTarget(SELECT_TARGET_MINDISTANCE, 0))
                             me->GetMotionMaster()->MoveChase(newtarget);
                         events.ScheduleEvent(EVENT_BELLOWING_ROAR, 5000);
                         events.ScheduleEvent(EVENT_FLAME_BREATH, urand(10000, 20000));

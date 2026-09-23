@@ -257,7 +257,7 @@ public:
 			Reset();
 		}
 
-		void EnterCombat(Unit* /**/) override
+		void JustEngagedWith(Unit* /**/) override
 		{
 			me->AddAura(42716);
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -294,7 +294,7 @@ public:
 				case EVENT_POISON_SPIT:
 				{
 					std::list<Unit*> targets;
-					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 					targets.remove_if(checkSpec());
 
 					if (!targets.empty())
@@ -310,7 +310,7 @@ public:
 				case EVENT_TOXIC_WOUND:
 				{
 					std::list<Unit*> targets;
-					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 					targets.remove_if(checkSpec());
 
 					if (!targets.empty())
@@ -362,7 +362,7 @@ public:
 			events.Reset();
 		}
 
-		void EnterCombat(Unit* /**/) override
+		void JustEngagedWith(Unit* /**/) override
 		{
 			switch (me->GetEntry())
 			{

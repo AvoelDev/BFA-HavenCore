@@ -32,9 +32,9 @@ struct boss_dazar : public BossAI
         hp60 = false;
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
     };
 
     void ExecuteEvent(uint32 eventId) override
@@ -47,7 +47,7 @@ struct boss_dazar : public BossAI
              break;
 
         case EVENT_QUAKING_LEAP:
-             if (Unit* tar = SelectTarget(SELECT_TARGET_FARTHEST, 0, 100.0f, true))
+             if (Unit* tar = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 100.0f, true))
              {
                  DoCast(tar, SPELL_QUAKING_LEAP);
              }
@@ -131,7 +131,7 @@ struct npc_dazar_minions : public ScriptedAI
         }
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         switch (me->GetEntry())
         {

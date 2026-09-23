@@ -376,7 +376,7 @@ public:
         {
             events.Reset();
         }
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_MOLTEN_BLAST, urand(7000, 9000));
             events.ScheduleEvent(EVENT_MOLTEN_BOLT, 5000);
@@ -440,7 +440,7 @@ public:
         {
             events.Reset();
         }
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_MOLTEN_BLAST, urand(7000, 9000));
             events.ScheduleEvent(EVENT_MOLTEN_VOLLEY, urand(10000,20000));
@@ -507,7 +507,7 @@ public:
             ignitElementalCount = 0;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_IGNITE, urand(7000, 9000));
             events.ScheduleEvent(EVENT_IGNITE_ELEMENTAL, 5000);
@@ -615,7 +615,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_CAUTERIZE, urand(7000, 9000));
             events.ScheduleEvent(EVENT_CONFLAGRATION, urand(8000, 20000));
@@ -718,7 +718,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (!me->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
             {
@@ -842,7 +842,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
 
         }
@@ -920,7 +920,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
 
         }
@@ -1036,7 +1036,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_DEVASTATE, urand(5000, 9000));
             events.ScheduleEvent(EVENT_ENSNARE, urand(8000, 20000));
@@ -1175,7 +1175,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (GetData(DATA_BEGIN_KAR) == EVENT_KAR_AGGRO_DONE)
             {
@@ -1378,7 +1378,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_CAUTERIZE, urand(7000, 9000));
             events.ScheduleEvent(EVENT_CONFLAGRATION, urand(8000, 20000));
@@ -1457,7 +1457,7 @@ class npc_firelands_ancient_core_hound : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_DINNER_TIME, urand (15000, 20000));
                 events.ScheduleEvent(EVENT_TERRIFYING_ROAR, urand(8000, 20000));
@@ -1520,7 +1520,7 @@ class npc_firelands_ancient_lava_dweller : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_LAVA_SHOWER, urand(15000, 20000));
             }
@@ -1609,7 +1609,7 @@ class npc_firelands_fire_turtle_hatchling : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_SHELL_SPIN, urand(10000, 20000));
             }
@@ -1674,7 +1674,7 @@ class npc_firelands_flame_archon : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_FLAME_TORRENT, 10000);
                 events.ScheduleEvent(EVENT_FIERY_TORMENT, 20000);
@@ -1746,7 +1746,7 @@ class npc_firelands_molten_lord : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_FLAME_STOMP, 5000);
                 events.ScheduleEvent(EVENT_MELT_ARMOR, urand(3000, 7000));
@@ -1823,7 +1823,7 @@ class npc_firelands_molten_flamefather : public CreatureScript
                 summons.DespawnAll();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_EARTHQUAKE, urand(5000, 10000));
                 events.ScheduleEvent(EVENT_MAGMA_CONDUIT, urand(6000, 7000));
@@ -2129,7 +2129,7 @@ class spell_firelands_flame_archon_fiery_torment : public SpellScriptLoader
                     return;
 
                 if (GetCaster()->GetAI())
-                    if (Unit* pTarget = GetCaster()->GetAI()->SelectTarget(SELECT_TARGET_NEAREST, 0, 100.0f, true))
+                    if (Unit* pTarget = GetCaster()->GetAI()->SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 100.0f, true))
                         GetCaster()->CastSpell(pTarget, SPELL_FIERY_TORMENT_DMG, true);
             }
 
@@ -2268,7 +2268,7 @@ public:
         {
         }
 
-        void EnterCombat(Unit* /*target*/) override
+        void JustEngagedWith(Unit* /*target*/) override
         {
             _events.Reset();
             DoZoneInCombat(me, 200);
@@ -2463,7 +2463,7 @@ class npc_harbinger_of_flame : public CreatureScript
             {
                 me->DespawnOrUnsummon();
             }
-            void EnterCombat(Unit* /*target*/) override
+            void JustEngagedWith(Unit* /*target*/) override
             {
                 if (Creature* bird = ObjectAccessor::GetCreature(*me, me->GetChannelObjects()[0]))
                     DoZoneInCombat(bird, 200.0f);
@@ -2510,7 +2510,7 @@ class npc_harbinger_of_flame : public CreatureScript
                     switch (eventId)
                     {
                         case EVENT_FIEROBLAST:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, false, -SPELL_RIDE_MONSTROSITY))
+                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, false, true, -SPELL_RIDE_MONSTROSITY))
                                 DoCast(target, SPELL_FIEROBLAST_TRASH);
                             _events.RescheduleEvent(EVENT_FIEROBLAST, 500);  // cast time is longer, but thanks to UNIT_STATE_CASTING check it won't trigger more often (need this because this creature gets a stacking haste aura)
                             break;
@@ -2739,7 +2739,7 @@ class npc_firelands_volcanus : public CreatureScript
                 events.Reset();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_FLAMEWAKE, 3000);
             }
@@ -2928,8 +2928,8 @@ class spell_alysrazor_aggro_closest : public SpellScriptLoader
             void HandleEffect(SpellEffIndex effIndex)
             {
                 PreventHitDefaultEffect(effIndex);
-                float curThreat = GetCaster()->getThreatManager().getThreat(GetHitUnit(), true);
-                GetCaster()->getThreatManager().addThreat(GetHitUnit(), -curThreat + 50000.0f / std::min(1.0f, GetCaster()->GetDistance(GetHitUnit())));
+                float curThreat = GetCaster()->GetThreatManager().getThreat(GetHitUnit(), true);
+                GetCaster()->GetThreatManager().AddThreat(GetHitUnit(), -curThreat + 50000.0f / std::min(1.0f, GetCaster()->GetDistance(GetHitUnit())));
             }
 
             void UpdateThreat()

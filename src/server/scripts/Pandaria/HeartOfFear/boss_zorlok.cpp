@@ -319,8 +319,8 @@ class boss_zorlok : public CreatureScript
             {
                 isFlying = true;
                 me->AttackStop();
-                me->DeleteThreatList();
-                me->getThreatManager().clearReferences();
+                me->GetThreatManager().ClearAllThreat();
+                me->GetThreatManager().clearReferences();
                 me->SetCanFly(true);
                 me->SetReactState(REACT_PASSIVE);
                 me->HandleEmoteCommand(EMOTE_ONESHOT_LIFTOFF);
@@ -474,7 +474,7 @@ class boss_zorlok : public CreatureScript
                 me->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT);
             }
 
-            void EnterCombat(Unit* /*p_Attacker*/) override
+            void JustEngagedWith(Unit* /*p_Attacker*/) override
             {
                 if (pInstance)
                 {
@@ -509,7 +509,7 @@ class boss_zorlok : public CreatureScript
                     me->RemoveAura(SPELL_SONG_OF_THE_EMPRESS);
 
                 // Start attacking player
-                me->AddThreat(attacker, 0.0f);
+                me->GetThreatManager().AddThreat(attacker, 0.0f);
             }
 
             void KilledUnit(Unit* victim) override

@@ -140,7 +140,7 @@ public:
             //ScriptedAI::AttackStart(who);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void SpellHit(Unit* /*caster*/, const SpellInfo* spell) override
         {
@@ -290,7 +290,7 @@ public:
             else mWaveId = 1;
 
         }
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void DoSummonAtRift(uint32 creature_entry)
         {
@@ -311,7 +311,7 @@ public:
 
             if (Unit* Summon = DoSummon(creature_entry, pos, 30000, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT))
                 if (Unit* temp = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_MEDIVH)))
-                    Summon->AddThreat(temp, 0.0f);
+                    AddThreat(temp, 0.0f, Summon);
         }
 
         void DoSelectSummon()

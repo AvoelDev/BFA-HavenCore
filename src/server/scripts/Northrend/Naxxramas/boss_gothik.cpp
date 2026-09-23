@@ -319,9 +319,9 @@ class boss_gothik : public CreatureScript
                 Initialize();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 events.SetPhase(PHASE_ONE);
                 events.ScheduleEvent(EVENT_SUMMON, Seconds(25), 0, PHASE_ONE);
                 events.ScheduleEvent(EVENT_DOORS_UNLOCK, Minutes(3) + Seconds(25), 0, PHASE_ONE);
@@ -393,7 +393,7 @@ class boss_gothik : public CreatureScript
                 switch (action)
                 {
                     case ACTION_MINION_EVADE:
-                        if (_gateIsOpen || me->getThreatManager().isThreatListEmpty())
+                        if (_gateIsOpen || me->GetThreatManager().IsThreatListEmpty())
                             return EnterEvadeMode(EVADE_REASON_NO_HOSTILES);
                         if (_gateCanOpen)
                             OpenGate();
@@ -419,8 +419,8 @@ class boss_gothik : public CreatureScript
                     // thus we only do a cursory check to make sure (edge cases?)
                     if (Player* newTarget = FindEligibleTarget(me, _gateIsOpen))
                     {
-                        me->getThreatManager().resetAllAggro();
-                        me->AddThreat(newTarget, 1.0f);
+                        ResetThreatList();
+                        AddThreat(newTarget, 1.0f);
                         AttackStart(newTarget);
                     }
                     else
@@ -502,7 +502,7 @@ class boss_gothik : public CreatureScript
                             Talk(SAY_PHASE_TWO);
                             Talk(EMOTE_PHASE_TWO);
                             me->SetReactState(REACT_PASSIVE);
-                            me->getThreatManager().resetAllAggro();
+                            ResetThreatList();
                             DoCastAOE(SPELL_TELEPORT_LIVE);
                             break;
                         case EVENT_TELEPORT:
@@ -512,7 +512,7 @@ class boss_gothik : public CreatureScript
                                 me->AttackStop();
                                 me->StopMoving();
                                 me->SetReactState(REACT_PASSIVE);
-                                me->getThreatManager().resetAllAggro();
+                                ResetThreatList();
                                 DoCastAOE(_lastTeleportDead ? SPELL_TELEPORT_LIVE : SPELL_TELEPORT_DEAD);
                                 _lastTeleportDead = !_lastTeleportDead;
 
@@ -593,7 +593,7 @@ struct npc_gothik_minion_baseAI : public ScriptedAI
                 case ACTION_ACQUIRE_TARGET:
                     if (Player* target = FindEligibleTarget(me, _gateIsOpen))
                     {
-                        me->AddThreat(target, 1.0f);
+                        AddThreat(target, 1.0f);
                         AttackStart(target);
                     }
                     else
@@ -621,8 +621,8 @@ struct npc_gothik_minion_baseAI : public ScriptedAI
                 if (Player* newTarget = FindEligibleTarget(me, _gateIsOpen))
                 {
                     me->RemoveAurasByType(SPELL_AURA_MOD_TAUNT);
-                    me->getThreatManager().resetAllAggro();
-                    me->AddThreat(newTarget, 1.0f);
+                    ResetThreatList();
+                    AddThreat(newTarget, 1.0f);
                     AttackStart(newTarget);
                 }
                 else
@@ -895,7 +895,7 @@ public:
 
         void EnterEvadeMode(EvadeReason /*why*/) override { }
         void UpdateAI(uint32 /*diff*/) override { }
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void DamageTaken(Unit* /*who*/, uint32& damage) override { damage = 0;  }
 
         Creature* SelectRandomSkullPile()

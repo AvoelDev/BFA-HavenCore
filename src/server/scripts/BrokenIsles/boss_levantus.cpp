@@ -67,7 +67,7 @@ public:
             _events.Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             _events.ScheduleEvent(1, 5000);
             _events.ScheduleEvent(2, 8000);
@@ -116,11 +116,11 @@ public:
                     _events.ScheduleEvent(2, 5000);
                     break;
                 case 3:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE))
                         me->CastSpell(target, 217229, true);
                     break;
                 case 4:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE))
                     {
                         if (target->GetDistance(me) < 30)
                             me->CastSpell(target, 217249, true); // todo

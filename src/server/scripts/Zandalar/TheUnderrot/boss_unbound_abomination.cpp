@@ -247,7 +247,7 @@ public:
             return me->FindNearestCreature(NPC_TITAN_KEEPER_HEZREL, 500.0f, true);
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             SelectSoundAndText(me, 1);
             visage = 0;
@@ -272,7 +272,7 @@ public:
             case SPELL_VILE_EXPULSION:
             {
                 std::list<Unit*> targets;
-                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 
                 if (!targets.empty())
                     if (targets.size() >= 1)
@@ -455,7 +455,7 @@ public:
                     me->TextEmote(str.str().c_str(), 0, true);
 
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 1, SELECT_TARGET_RANDOM, 500.0f, true);
+                    SelectTargetList(targets, 1, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 
                     if (!targets.empty())
                         if (targets.size() >= 1)
@@ -541,7 +541,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             me->SetReactState(REACT_AGGRESSIVE);
 
@@ -594,7 +594,7 @@ public:
                 case EVENT_FIXATE:
                 {
                     std::list<Unit*> targets;
-                    SelectTargetList(targets, 1, SELECT_TARGET_RANDOM, 500.0f, true);
+                    SelectTargetList(targets, 1, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 
                     if (!targets.empty())
                         if (targets.size() >= 1)
@@ -602,7 +602,7 @@ public:
 
                     for (Unit* target : targets)
                     {
-                        me->AddThreat(target, 9999999999.9f);
+                        me->GetThreatManager().AddThreat(target, 9999999999.9f);
                         me->AI()->AttackStart(target);
                     }
                     events.ScheduleEvent(EVENT_FIXATE_FOLLOW, 2000);

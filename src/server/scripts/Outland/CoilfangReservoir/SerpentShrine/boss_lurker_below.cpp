@@ -166,7 +166,7 @@ public:
             Summons.DespawnAll();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             instance->SetData(DATA_THELURKERBELOWEVENT, IN_PROGRESS);
         }
@@ -227,9 +227,9 @@ public:
                 return;
             }
 
-            if (me->getThreatManager().getThreatList().empty()) // check if should evade
+            if (!me->IsThreatened()) // check if should evade
             {
-                if (me->IsInCombat())
+                if (me->IsEngaged())
                     EnterEvadeMode();
                 return;
             }
@@ -343,7 +343,7 @@ public:
                     return;
                 } else PhaseTimer-=diff;
 
-                if (me->getThreatManager().getThreatList().empty()) // check if should evade
+                if (!me->IsThreatened()) // check if should evade
                 {
                     EnterEvadeMode();
                     return;

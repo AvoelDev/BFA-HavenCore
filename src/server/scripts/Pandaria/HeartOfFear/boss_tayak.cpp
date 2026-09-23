@@ -321,7 +321,7 @@ class boss_tayak : public CreatureScript
                 }
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (pInstance)
                 {
@@ -364,7 +364,7 @@ class boss_tayak : public CreatureScript
 
                 //me->DisableEvadeMode();
                 me->DisableHealthRegen();
-                _EnterCombat();
+                _JustEngagedWith();
             }
 
             void KilledUnit(Unit* victim) override
@@ -392,7 +392,7 @@ class boss_tayak : public CreatureScript
 
                 me->RemoveAllAuras();
                 Reset();
-                me->DeleteThreatList();
+                me->GetThreatManager().ClearAllThreat();
                 me->CombatStop(false);
                 me->GetMotionMaster()->MoveTargetedHome();
 
@@ -593,7 +593,7 @@ class boss_tayak : public CreatureScript
                         {
                             // Store current victim to return to it afterwards
                             currentTank = me->GetVictim() ? me->GetVictim()->GetGUID() : ObjectGuid::Empty;
-                            if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 50.0f, true))
+                            if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 50.0f, true))
                                 DoCast(target, SPELL_WIND_STEP_TP);
                             events.ScheduleEvent(EVENT_WIND_STEP_RETURN, 1000);
                             events.ScheduleEvent(EVENT_TAYAK_WIND_STEP, urand(24000, 26000));
@@ -715,7 +715,7 @@ class boss_tayak : public CreatureScript
 
             void SetAggro()
             {
-                if (Unit* victim = SelectTarget(SELECT_TARGET_TOPAGGRO))
+                if (Unit* victim = SelectTarget(SELECT_TARGET_MAXTHREAT))
                 {
                     AttackStart(victim);
                     me->SetInCombatWith(victim);

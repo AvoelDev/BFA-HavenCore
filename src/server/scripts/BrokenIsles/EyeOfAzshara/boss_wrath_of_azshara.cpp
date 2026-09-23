@@ -312,7 +312,7 @@ public:
 			Reset();
 		}
 
-		void EnterCombat(Unit* /**/) override
+		void JustEngagedWith(Unit* /**/) override
 		{
 			SelectSoundAndText(me, 2);
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -376,7 +376,7 @@ public:
 				case EVENT_ARCANE_BOMB:
 				{
 					std::list<Unit*> targets;
-					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 					targets.remove_if(checkSpec()); //no tanks
 
 					if (!targets.empty())
@@ -392,7 +392,7 @@ public:
 				case EVENT_CRUSHING_DEPTHS:
 				{
 					std::list<Unit*> targets;
-					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 					targets.remove_if(checkSpec()); //no tanks
 
 					if (!targets.empty())
@@ -411,7 +411,7 @@ public:
 				case EVENT_MYSTIC_TORNADO:
 				{
 					std::list<Unit*> targets;
-					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+					SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
 					targets.remove_if(checkSpec()); //no tanks
 
 					if (!targets.empty())

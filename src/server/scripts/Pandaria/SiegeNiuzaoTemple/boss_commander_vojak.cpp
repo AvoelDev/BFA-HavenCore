@@ -88,9 +88,9 @@ class boss_commander_vojak : public CreatureScript
                 bladetimer = 0;
             }
 
-            void EnterCombat(Unit* /*who*/)
+            void JustEngagedWith(Unit* /*who*/)
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 striketimer = 3000;
             }
 
@@ -351,7 +351,7 @@ public:
                 case EVENT_LI_LO_CHU_EVADE:
                     me->RemoveAllAuras();
                     Reset();
-                    me->DeleteThreatList();
+                    me->GetThreatManager().ClearAllThreat();
                     me->CombatStop(true);
                     me->GetMotionMaster()->MoveTargetedHome();
                     break;

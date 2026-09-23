@@ -302,7 +302,7 @@ struct korkron_dark_shaman_AI : public BossAI
         m_IsBerserkDone = false;
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         ChangeHomePositions();
 
@@ -674,9 +674,9 @@ class boss_earthbreaker_haromm : public CreatureScript
                 SetEquipmentSlots(false, DISPLAY_HAROMMS_FROZEN_CRESCENT, DISPLAY_HAROMMS_FROZEN_CRESCENT);
             }
 
-            void EnterCombat(Unit* who)
+            void JustEngagedWith(Unit* who)
             {
-                korkron_dark_shaman_AI::EnterCombat(who);
+                korkron_dark_shaman_AI::JustEngagedWith(who);
 
                 events.ScheduleEvent(EVENT_FROSTSTORM_STRIKE, TIMER_FROSTSTORM_STRIKE_FIRST);
             }
@@ -725,9 +725,9 @@ class boss_earthbreaker_haromm : public CreatureScript
                         break;
                     case EVENT_FOUL_STREAM:
                     {
-                        Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 20.0f, true, -SPELL_TOXIC_MIST);
+                        Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 20.0f, true, true, -SPELL_TOXIC_MIST);
                         if (!target)
-                            target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, -SPELL_TOXIC_MIST);
+                            target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, true, -SPELL_TOXIC_MIST);
                         if (!target)
                             target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true);
 
@@ -818,9 +818,9 @@ class boss_wavebinder_kardris : public CreatureScript
                 SetEquipmentSlots(false, DISPLAY_KARDRIS_SCEPTER, DISPLAY_KARDRIS_SCEPTER);
             }
 
-            void EnterCombat(Unit* who)
+            void JustEngagedWith(Unit* who)
             {
-                korkron_dark_shaman_AI::EnterCombat(who);
+                korkron_dark_shaman_AI::JustEngagedWith(who);
 
                 events.ScheduleEvent(EVENT_FROSTSTORM_BOLT, TIMER_FROSTSTORM_BOLT_FIRST);
             }
@@ -965,7 +965,7 @@ class npc_korkron_dark_shaman_wolf : public CreatureScript
                 me->SetReactState(REACT_DEFENSIVE);
             }
 
-            void EnterCombat(Unit* /*unit*/)
+            void JustEngagedWith(Unit* /*unit*/)
             {
                 events.ScheduleEvent(EVENT_SWIPE, TIMER_SWIPE_FIRST);
                 events.ScheduleEvent(EVENT_REND, TIMER_REND_FIRST);
@@ -1367,7 +1367,7 @@ class spell_korkron_dark_shaman_toxic_mist : public SpellScriptLoader
                 {
                     uint8 targetsCount = pCreature->GetMap()->Is25ManRaid() ? 5 : 2;
                     std::list<Unit*> newTargets;
-                    pCreature->AI()->SelectTargetList(newTargets, targetsCount, SELECT_TARGET_RANDOM, 0.0f, true);
+                    pCreature->AI()->SelectTargetList(newTargets, targetsCount, SELECT_TARGET_RANDOM, 0, 0.0f, true);
 
                     for (auto target : newTargets)
                         targets.push_back(target);

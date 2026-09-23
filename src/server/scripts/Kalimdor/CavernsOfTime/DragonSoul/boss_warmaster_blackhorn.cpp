@@ -250,7 +250,7 @@ class boss_warmaster_blackhorn: public CreatureScript
                 orientation = 0;
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 uiWave = 0;
                 drakeDied = 0;
@@ -278,8 +278,8 @@ class boss_warmaster_blackhorn: public CreatureScript
                     if (Creature* pShip = me->FindNearestCreature(NPC_SKYFIRE, 300.0f))
                     {
                         pShip->SetInCombatWith(me);
-                        pShip->AddThreat(me, 0.0f);
-                        me->AddThreat(pShip, 0.0f);
+                        pShip->GetThreatManager().AddThreat(me, 0.0f);
+                        me->GetThreatManager().AddThreat(pShip, 0.0f);
                     }
 
                     events.ScheduleEvent(EVENT_SUMMON_DRAKE, 10000);
@@ -1066,7 +1066,7 @@ class npc_warmaster_blackhorn_twilight_elite_dreadblade_slayer: public CreatureS
                     {
                         case EVENT_BLADE_RUSH:
                             startPos = me->GetPosition();
-                            if (Unit* pTarget = SelectTarget(SELECT_TARGET_FARTHEST, 0, 30.0f, true))
+                            if (Unit* pTarget = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 30.0f, true))
                             {
                                 endPos = pTarget->GetPosition();
                                 DoCast(pTarget, SPELL_BLADE_RUSH);
@@ -1430,7 +1430,7 @@ class npc_warmaster_blackhorn_skyfire: public CreatureScript
                     pInstance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (pInstance)
                     pInstance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);

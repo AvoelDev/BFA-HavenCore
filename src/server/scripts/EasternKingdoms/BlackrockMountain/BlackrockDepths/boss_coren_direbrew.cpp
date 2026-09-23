@@ -305,7 +305,7 @@ public:
             return ObjectGuid::Empty;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoCastSelf(SPELL_PORT_TO_COREN);
 
@@ -321,7 +321,7 @@ public:
                 })
                 .Schedule(Seconds(2), [this](TaskContext mugChuck)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, false, -SPELL_HAS_DARK_BREWMAIDENS_BREW))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, false, true, -SPELL_HAS_DARK_BREWMAIDENS_BREW))
                         DoCast(target, SPELL_CHUCK_MUG);
                     mugChuck.Repeat(Seconds(4));
                 });
@@ -407,10 +407,10 @@ public:
             }
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             Talk(SAY_ANTAGONIST_COMBAT, who);
-            ScriptedAI::EnterCombat(who);
+            ScriptedAI::JustEngagedWith(who);
         }
     };
 

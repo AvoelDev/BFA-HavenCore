@@ -960,14 +960,9 @@ class npc_jaina_or_sylvanas_escape_hor : public CreatureScript
 
             void DeleteAllFromThreatList(Unit* target, ObjectGuid except)
             {
-                ThreatContainer::StorageType threatlist = target->getThreatManager().getThreatList();
-                for (auto i : threatlist)
-                {
-                    if (i->getUnitGuid() == except)
-                        continue;
-
-                    i->removeReference();
-                }
+                for (ThreatReference* ref : target->GetThreatManager().GetModifiableThreatList())
+                  if (ref->GetVictim()->GetGUID() != except)
+                    ref->ClearThreat();
             }
 
             void UpdateAI(uint32 diff) override
@@ -1345,7 +1340,7 @@ class npc_the_lich_king_escape_hor : public CreatureScript
                         AttackStart(victim);
                     return me->GetVictim() != nullptr;
                 }
-                else if (me->getThreatManager().getThreatList().size() < 2 && me->HasAura(SPELL_REMORSELESS_WINTER))
+                else if (me->GetThreatManager().GetThreatListSize() < 2 && me->HasAura(SPELL_REMORSELESS_WINTER))
                 {
                     EnterEvadeMode(EVADE_REASON_OTHER);
                     return false;
@@ -1487,7 +1482,7 @@ class npc_ghostly_priest : public CreatureScript
         {
             npc_ghostly_priestAI(Creature* creature) : npc_gauntlet_trash(creature) { }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 _events.ScheduleEvent(EVENT_SHADOW_WORD_PAIN, urand(6000, 15000));
                 _events.ScheduleEvent(EVENT_CIRCLE_OF_DESTRUCTION, 12000);
@@ -1564,7 +1559,7 @@ class npc_phantom_mage : public CreatureScript
                     npc_gauntlet_trash::EnterEvadeMode(why);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 _events.ScheduleEvent(EVENT_FIREBALL, 3000);
                 _events.ScheduleEvent(EVENT_FLAMESTRIKE, 6000);
@@ -1665,7 +1660,7 @@ class npc_shadowy_mercenary : public CreatureScript
         {
             npc_shadowy_mercenaryAI(Creature* creature) : npc_gauntlet_trash(creature) { }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 _events.ScheduleEvent(EVENT_SHADOW_STEP, 23000);
                 _events.ScheduleEvent(EVENT_DEADLY_POISON, 5000);
@@ -1726,7 +1721,7 @@ class npc_spectral_footman : public CreatureScript
         {
             npc_spectral_footmanAI(Creature* creature) : npc_gauntlet_trash(creature) { }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 _events.ScheduleEvent(EVENT_SPECTRAL_STRIKE, 14000);
                 _events.ScheduleEvent(EVENT_SHIELD_BASH, 10000);
@@ -1780,7 +1775,7 @@ class npc_tortured_rifleman : public CreatureScript
         {
             npc_tortured_riflemanAI(Creature* creature) : npc_gauntlet_trash(creature) { }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 _events.ScheduleEvent(EVENT_SHOOT, 1);
                 _events.ScheduleEvent(EVENT_CURSED_ARROW, 7000);
@@ -1880,7 +1875,7 @@ class npc_frostsworn_general : public CreatureScript
                 _instance->SetData(DATA_FROSTSWORN_GENERAL, DONE);
             }
 
-            void EnterCombat(Unit* /*victim*/) override
+            void JustEngagedWith(Unit* /*victim*/) override
             {
                 Talk(SAY_AGGRO);
                 DoZoneInCombat();
@@ -1928,7 +1923,7 @@ class npc_frostsworn_general : public CreatureScript
             void SummonClones()
             {
                 std::list<Unit*> playerList;
-                SelectTargetList(playerList, 5, SELECT_TARGET_TOPAGGRO, 0.0f, true);
+                SelectTargetList(playerList, 5, SELECT_TARGET_MAXTHREAT, 0, 0.0f, true);
                 for (Unit* target : playerList)
                 {
                     if (Creature* reflection = me->SummonCreature(NPC_REFLECTION, *target, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 3000))
@@ -1966,7 +1961,7 @@ class npc_spiritual_reflection : public CreatureScript
                 _events.Reset();
             }
 
-            void EnterCombat(Unit* /*victim*/) override
+            void JustEngagedWith(Unit* /*victim*/) override
             {
                 _events.ScheduleEvent(EVENT_BALEFUL_STRIKE, 3000);
             }
@@ -2171,7 +2166,7 @@ struct npc_escape_event_trash : public ScriptedAI
             me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
             me->SetInCombatWith(leader);
             leader->SetInCombatWith(me);
-            me->AddThreat(leader, 0.0f);
+            AddThreat(leader, 0.0f);
         }
     }
 
@@ -2291,7 +2286,7 @@ class npc_risen_witch_doctor : public CreatureScript
                         _events.ScheduleEvent(EVENT_RISEN_WITCH_DOCTOR_CURSE, urand(10000, 15000));
                         break;
                     case EVENT_RISEN_WITCH_DOCTOR_SHADOW_BOLT:
-                        if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 20.0f, true))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 20.0f, true))
                             DoCast(target, SPELL_SHADOW_BOLT);
                         _events.ScheduleEvent(EVENT_RISEN_WITCH_DOCTOR_SHADOW_BOLT, urand(2000, 3000));
                         break;
@@ -2602,7 +2597,7 @@ class npc_quel_delar_sword : public CreatureScript
                     me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC));
             }
 
-            void EnterCombat(Unit* /*victim*/) override
+            void JustEngagedWith(Unit* /*victim*/) override
             {
                 _events.ScheduleEvent(EVENT_QUEL_DELAR_HEROIC_STRIKE, 4000);
                 _events.ScheduleEvent(EVENT_QUEL_DELAR_BLADESTORM, 6000);

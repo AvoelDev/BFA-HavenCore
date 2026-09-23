@@ -104,9 +104,9 @@ class boss_gruul : public CreatureScript
                 Initialize();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 Talk(SAY_AGGRO);
             }
 
@@ -205,7 +205,7 @@ class boss_gruul : public CreatureScript
                     // Hurtful Strike
                     if (m_uiHurtfulStrike_Timer <= diff)
                     {
-                        Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 1);
+                        Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 1);
 
                         if (target && me->IsWithinMeleeRange(me->GetVictim()))
                             DoCast(target, SPELL_HURTFUL_STRIKE);

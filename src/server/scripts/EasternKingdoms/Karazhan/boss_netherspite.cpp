@@ -226,7 +226,7 @@ public:
                     }
                     // aggro target if Red Beam
                     if (j == RED_PORTAL && me->GetVictim() != target && target->GetTypeId() == TYPEID_PLAYER)
-                        me->getThreatManager().addThreat(target, 100000.0f+DoGetThreat(me->GetVictim()));
+                        AddThreat(target, 100000.0f);
                 }
         }
 
@@ -263,7 +263,7 @@ public:
                 Door->SetGoState(open ? GO_STATE_ACTIVE : GO_STATE_READY);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             HandleDoors(false);
             SwitchToPortalPhase();

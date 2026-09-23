@@ -131,11 +131,11 @@ public:
             if (done_by->GetGUID() != victimGUID && done_by->GetGUID() != me->GetGUID())
             {
                 damage = 0;
-                DoModifyThreatPercent(done_by, -100);
+                ModifyThreatByPercent(done_by, -100);
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (!victimGUID)
                 return;
@@ -149,11 +149,11 @@ public:
 
             if (me->EnsureVictim()->GetGUID() != victimGUID)
             {
-                DoModifyThreatPercent(me->GetVictim(), -100);
+                ModifyThreatByPercent(me->GetVictim(), -100);
                 Unit* owner = ObjectAccessor::GetUnit(*me, victimGUID);
                 if (owner && owner->IsAlive())
                 {
-                    me->AddThreat(owner, 999999);
+                    AddThreat(owner, 999999);
                     AttackStart(owner);
                 } else if (owner && owner->isDead())
                 {
@@ -334,7 +334,7 @@ public:
                     Unit* victim = nullptr;
                     victim = ObjectAccessor::GetUnit(*me, instance->GetGuidData(DATA_LEOTHERAS_EVENT_STARTER));
                     if (victim)
-                        me->getThreatManager().addThreat(victim, 1);
+                        AddThreat(victim, 1);
                     StartEvent();
                 }
             }
@@ -386,7 +386,7 @@ public:
                         if (unit_target && unit_target->IsAlive())
                         {
                             unit->CastSpell(unit_target, SPELL_CONSUMING_MADNESS, true);
-                            DoModifyThreatPercent(unit_target, -100);
+                            ModifyThreatByPercent(unit_target, -100);
                         }
                     }
                 }
@@ -413,7 +413,7 @@ public:
             instance->SetData(DATA_LEOTHERASTHEBLINDEVENT, DONE);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (me->HasAura(AURA_BANISH))
             return;
@@ -440,7 +440,7 @@ public:
                     Unit* newTarget = SelectTarget(SELECT_TARGET_RANDOM, 0);
                     if (newTarget)
                     {
-                        DoResetThreat();
+                        ResetThreatList();
                         me->GetMotionMaster()->Clear();
                         me->GetMotionMaster()->MovePoint(0, newTarget->GetPositionX(), newTarget->GetPositionY(), newTarget->GetPositionZ());
                     }
@@ -458,7 +458,7 @@ public:
                     Whirlwind_Timer =  15000;
 
                 NeedThreatReset = false;
-                DoResetThreat();
+                ResetThreatList();
                 me->GetMotionMaster()->Clear();
                 me->GetMotionMaster()->MoveChase(me->GetVictim());
             }
@@ -524,16 +524,17 @@ public:
                 //Summon Inner Demon
                 if (InnerDemons_Timer <= diff)
                 {
-                    ThreatContainer::StorageType const & ThreatList = me->getThreatManager().getThreatList();
-                    std::vector<Unit*> TargetList;
-                    for (ThreatContainer::StorageType::const_iterator itr = ThreatList.begin(); itr != ThreatList.end(); ++itr)
+                    ThreatManager const& mgr = me->GetThreatManager();
+                    std::list<Unit*> TargetList;
+                    Unit* currentVictim = mgr.GetCurrentVictim();
+                    for (ThreatReference const* ref : mgr.GetSortedThreatList())
                     {
-                        Unit* tempTarget = ObjectAccessor::GetUnit(*me, (*itr)->getUnitGuid());
-                        if (tempTarget && tempTarget->GetTypeId() == TYPEID_PLAYER && tempTarget->GetGUID() != me->EnsureVictim()->GetGUID() && TargetList.size()<5)
-                            TargetList.push_back(tempTarget);
+                        if (Player* tempTarget = ref->GetVictim()->ToPlayer())
+                            if (tempTarget != currentVictim && TargetList.size()<5)
+                                TargetList.push_back(tempTarget);
                     }
                     //SpellInfo* spell = GET_SPELL(SPELL_INSIDIOUS_WHISPER);
-                    for (std::vector<Unit*>::const_iterator itr = TargetList.begin(); itr != TargetList.end(); ++itr)
+                    for (auto itr = TargetList.begin(), end = TargetList.end(); itr != end; ++itr)
                     {
                         if ((*itr) && (*itr)->IsAlive())
                         {
@@ -654,7 +655,7 @@ public:
             DoCast(me, 8149, true);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             StartEvent();
         }
@@ -729,7 +730,7 @@ public:
                 ENSURE_AI(boss_leotheras_the_blind::boss_leotheras_the_blindAI, leotheras->AI())->CheckChannelers(/*false*/);
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             me->InterruptNonMeleeSpells(false);
             instance->SetGuidData(DATA_LEOTHERAS_EVENT_STARTER, who->GetGUID());
