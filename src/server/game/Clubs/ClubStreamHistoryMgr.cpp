@@ -40,10 +40,15 @@ void ClubStreamHistoryMgr::LoadFromDB()
     _streams.clear();
     _viewMarkers.clear();
 
-    // Age based retention before loading, like Draconic (printf-style format).
-    time_t const oldest = time(nullptr) - time_t(MessageRetentionSeconds);
-    CharacterDatabase.DirectPExecute("DELETE FROM club_message WHERE createdTime < %llu", uint64(std::max<time_t>(oldest, 0)));
-    CharacterDatabase.DirectPExecute("DELETE FROM club_member_mention WHERE createdTime < %llu", uint64(std::max<time_t>(oldest, 0)));
+    // Apply retention synchronously before loading stream history.
+    uint64 const cutoff = uint64(std::max<time_t>(time(nullptr) - time_t(MessageRetentionSeconds), 0));
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_EXPIRED_CLUB_MESSAGES);
+    stmt->setUInt64(0, cutoff);
+    CharacterDatabase.DirectExecute(stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_EXPIRED_CLUB_MEMBER_MENTIONS);
+    stmt->setUInt64(0, cutoff);
+    CharacterDatabase.DirectExecute(stmt);
 
     uint32 messageCount = 0;
     if (QueryResult result = CharacterDatabase.Query("SELECT clubId, streamId, epoch, position, authorAccountId, authorGuid, content, createdTime, destroyerGuid, destroyTime "

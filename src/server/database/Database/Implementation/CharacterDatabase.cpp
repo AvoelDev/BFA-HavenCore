@@ -297,6 +297,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_UPD_CLUB_MESSAGE_DESTROY, "UPDATE club_message SET content = '', destroyerGuid = ?, destroyTime = ? WHERE clubId = ? AND streamId = ? AND epoch = ? AND position = ? AND destroyTime = 0", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CLUB_MESSAGES, "DELETE FROM club_message WHERE clubId = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_OLD_CLUB_MESSAGES, "DELETE FROM club_message WHERE clubId = ? AND streamId = ? AND createdTime < ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_EXPIRED_CLUB_MESSAGES, "DELETE FROM club_message WHERE createdTime < ?", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_DEL_EXPIRED_CLUB_MEMBER_MENTIONS, "DELETE FROM club_member_mention WHERE createdTime < ?", CONNECTION_SYNCH);
     PrepareStatement(CHAR_REP_CLUB_STREAM_VIEW_MARKER, "REPLACE INTO club_stream_view_marker (clubId, streamId, memberGuid, lastViewTime) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CLUB_STREAM_VIEW_MARKER_MEMBER, "DELETE FROM club_stream_view_marker WHERE clubId = ? AND memberGuid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CLUB_STREAM_VIEW_MARKERS, "DELETE FROM club_stream_view_marker WHERE clubId = ?", CONNECTION_ASYNC);
