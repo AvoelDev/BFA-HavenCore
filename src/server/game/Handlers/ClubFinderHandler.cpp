@@ -37,7 +37,6 @@
 // -----------------------------------------------------------------------------
 
 #include "WorldSession.h"
-#include "ByteBuffer.h"
 #include "CharacterCache.h"
 #include "DatabaseEnv.h"
 #include "Guild.h"
@@ -181,7 +180,6 @@ namespace
         return applicant;
     }
 
-    std::string HexDumpPacket(ByteBuffer const& buffer);
 
     void SendApplicationUpdate(Player* receiver, Guild const* guild, MembershipRequest const& request, uint8 context)
     {
@@ -192,10 +190,10 @@ namespace
         update.Context = context;
         update.Applications.push_back(BuildApplicationUpdate(guild, request));
         WorldPacket const* packet = update.Write();
-        TC_LOG_INFO("guild", "[CF-APP] push UPDATE_APPLICATIONS receiver=%s guild=%u player=%s status=%u(%s) closed=%u context=0x%02X size=%u bytes=[%s]",
+        TC_LOG_INFO("guild", "[CF-APP] push UPDATE_APPLICATIONS receiver=%s guild=%u player=%s status=%u(%s) closed=%u context=0x%02X size=%u",
             receiver->GetName().c_str(), guild->GetId(), request.GetPlayerGUID().ToString().c_str(),
             uint32(request.GetStatus()), GetApplicationStatusName(request.GetStatus()), GetClosedToken(request),
-            uint32(context), uint32(packet->size()), HexDumpPacket(*packet).c_str());
+            uint32(context), uint32(packet->size()));
         receiver->SendDirectMessage(packet);
     }
 
@@ -212,23 +210,6 @@ namespace
         guild->BroadcastWorker(notify);
     }
 
-    // [CF-BYTES] temporary diagnostics. Keep it handler-local so removing the
-    // trace later cannot affect the domain manager or packet serializers.
-    std::string HexDumpPacket(ByteBuffer const& buffer)
-    {
-        static char constexpr Hex[] = "0123456789ABCDEF";
-        std::string out;
-        out.reserve(buffer.size() * 3);
-        for (size_t i = 0; i < buffer.size(); ++i)
-        {
-            uint8 byte = buffer.read<uint8>(i);
-            if (i)
-                out += ' ';
-            out += Hex[(byte >> 4) & 0x0F];
-            out += Hex[byte & 0x0F];
-        }
-        return out;
-    }
 }
 
 namespace
@@ -298,9 +279,9 @@ void WorldSession::HandleClubFinderRequestClubsList(WorldPackets::ClubFinder::Cl
     std::string filterText;
     for (auto const& filter : request.Filters)
         filterText += Trinity::StringFormat(" %u:%llu", uint32(filter.Type), (unsigned long long)filter.Value);
-    TC_LOG_INFO("guild", "[CF-SEARCH] C->S REQUEST_CLUBS_LIST [%s] type=%u settings=0x%X search='%s' filters=[%s ]%s bytes=[%s]",
+    TC_LOG_INFO("guild", "[CF-SEARCH] C->S REQUEST_CLUBS_LIST [%s] type=%u settings=0x%X search='%s' filters=[%s ]%s",
         GetPlayerInfo().c_str(), uint32(request.RequestType), request.Settings, request.SearchTerms.c_str(), filterText.c_str(),
-        request.Malformed ? " MALFORMED" : "", HexDumpPacket(*request.GetRawPacket()).c_str());
+        request.Malformed ? " MALFORMED" : "");
 
     LFGuildPlayer settings(player->GetGUID(), GUILDFINDER_ALL_ROLES, AVAILABILITY_ALWAYS, ALL_INTERESTS, ALL_GUILDFINDER_LEVELS);
     std::vector<LFGuildSettings const*> guildList = sClubFinderMgr->GetGuildsMatchingSetting(settings, player->GetTeamId());
@@ -320,18 +301,11 @@ void WorldSession::HandleClubFinderRequestClubsList(WorldPackets::ClubFinder::Cl
     TC_LOG_DEBUG("guild", "SMSG_RETURN_RECRUITING_CLUBS [%s] postings=%u context=0x%02X",
         GetPlayerInfo().c_str(), uint32(response.PostingIDs.size()), uint32(response.Context));
     WorldPacket const* recruitingData = response.Write();
-    TC_LOG_INFO("guild", "[CF-BYTES] S->C RETURN_RECRUITING_CLUBS [%s] postings=%u context=0x%02X size=%u bytes=[%s]",
-        GetPlayerInfo().c_str(), uint32(response.PostingIDs.size()), uint32(response.Context),
-        uint32(recruitingData->size()), HexDumpPacket(*recruitingData).c_str());
     SendPacket(recruitingData);
 }
 
 void WorldSession::HandleClubFinderRequestClubsData(WorldPackets::ClubFinder::ClubFinderRequestClubsData& request)
 {
-    TC_LOG_INFO("guild", "[CF-BYTES] C->S REQUEST_CLUBS_DATA [%s] size=%u postings=%u filters=%u requestType=%u linked=%u context=0x%02X bytes=[%s]",
-        GetPlayerInfo().c_str(), uint32(request.GetRawPacket()->size()), uint32(request.ClubFinderPostingIDs.size()),
-        request.FilterCount, uint32(request.RequestType), request.LinkedLookup ? 1u : 0u, uint32(request.Context),
-        HexDumpPacket(*request.GetRawPacket()).c_str());
     WorldPackets::ClubFinder::LookupClubPostingsList response;
     response.Context = request.Context ? request.Context : DefaultLookupEnvelope;
     response.Postings.reserve(request.ClubFinderPostingIDs.size());
@@ -364,8 +338,6 @@ void WorldSession::HandleClubFinderRequestClubsData(WorldPackets::ClubFinder::Cl
         GetPlayerInfo().c_str(), uint32(request.ClubFinderPostingIDs.size()), uint32(response.Postings.size()), request.FilterCount,
         uint32(request.RequestType), request.LinkedLookup ? 1u : 0u, uint32(response.Context));
     WorldPacket const* lookupData = response.Write();
-    TC_LOG_INFO("guild", "[CF-BYTES] S->C LOOKUP_CLUB_POSTINGS_LIST [%s] size=%u bytes=[%s]",
-        GetPlayerInfo().c_str(), uint32(lookupData->size()), HexDumpPacket(*lookupData).c_str());
     SendPacket(lookupData);
 }
 
@@ -413,8 +385,6 @@ void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets:
     }
 
     WorldPacket const* mappingData = response.Write();
-    TC_LOG_INFO("guild", "[CF-BYTES] S->C GET_CLUB_POSTING_IDS_RESPONSE [%s] entries=%u size=%u bytes=[%s]",
-        GetPlayerInfo().c_str(), uint32(response.Entries.size()), uint32(mappingData->size()), HexDumpPacket(*mappingData).c_str());
     SendPacket(mappingData);
 }
 
@@ -469,8 +439,8 @@ void WorldSession::HandleClubFinderGetApplicantsList(WorldPackets::ClubFinder::C
     if (!player)
         return;
 
-    TC_LOG_INFO("guild", "[CF-APP] C->S GET_APPLICANTS player=%s context=0x%02X rawSize=%u bytes=[%s]",
-        GetPlayerInfo().c_str(), uint32(request.Context), uint32(request.GetRawPacket()->size()), HexDumpPacket(*request.GetRawPacket()).c_str());
+    TC_LOG_INFO("guild", "[CF-APP] C->S GET_APPLICANTS player=%s context=0x%02X rawSize=%u",
+        GetPlayerInfo().c_str(), uint32(request.Context), uint32(request.GetRawPacket()->size()));
 
     Guild* guild = player->GetGuild();
     WorldPackets::ClubFinder::ReturnApplicantList response;
@@ -502,9 +472,9 @@ void WorldSession::HandleClubFinderGetApplicantsList(WorldPackets::ClubFinder::C
     TC_LOG_DEBUG("guild", "SMSG_RETURN_APPLICANT_LIST [%s] applicants=%u context=0x%02X",
         GetPlayerInfo().c_str(), uint32(response.Applicants.size()), uint32(response.Context));
     WorldPacket const* applicantPacket = response.Write();
-    TC_LOG_INFO("guild", "[CF-APP] S->C RETURN_APPLICANT_LIST player=%s applicants=%u context=0x%02X size=%u bytes=[%s]",
+    TC_LOG_INFO("guild", "[CF-APP] S->C RETURN_APPLICANT_LIST player=%s applicants=%u context=0x%02X size=%u",
         GetPlayerInfo().c_str(), uint32(response.Applicants.size()), uint32(response.Context),
-        uint32(applicantPacket->size()), HexDumpPacket(*applicantPacket).c_str());
+        uint32(applicantPacket->size()));
     SendPacket(applicantPacket);
 
     // The client independently requests the selected posting through
@@ -522,8 +492,8 @@ void WorldSession::HandleClubFinderRequestPendingClubsList(WorldPackets::ClubFin
     if (!player)
         return;
 
-    TC_LOG_INFO("guild", "[CF-APP] C->S REQUEST_PENDING player=%s context=0x%02X rawSize=%u bytes=[%s]",
-        GetPlayerInfo().c_str(), uint32(request.Context), uint32(request.GetRawPacket()->size()), HexDumpPacket(*request.GetRawPacket()).c_str());
+    TC_LOG_INFO("guild", "[CF-APP] C->S REQUEST_PENDING player=%s context=0x%02X rawSize=%u",
+        GetPlayerInfo().c_str(), uint32(request.Context), uint32(request.GetRawPacket()->size()));
 
     WorldPackets::ClubFinder::ResponseCharacterApplicationList response;
     response.Context = request.Context ? request.Context : uint8(0x60);
@@ -549,9 +519,9 @@ void WorldSession::HandleClubFinderRequestPendingClubsList(WorldPackets::ClubFin
     }
 
     WorldPacket const* pendingPacket = response.Write();
-    TC_LOG_INFO("guild", "[CF-APP] S->C RESPONSE_CHARACTER_APPLICATION_LIST player=%s applications=%u context=0x%02X size=%u bytes=[%s]",
+    TC_LOG_INFO("guild", "[CF-APP] S->C RESPONSE_CHARACTER_APPLICATION_LIST player=%s applications=%u context=0x%02X size=%u",
         GetPlayerInfo().c_str(), uint32(response.Applications.size()), uint32(response.Context),
-        uint32(pendingPacket->size()), HexDumpPacket(*pendingPacket).c_str());
+        uint32(pendingPacket->size()));
     SendPacket(pendingPacket);
 }
 
