@@ -3765,7 +3765,10 @@ inline std::string Guild::_GetRankName(uint8 rankId) const
     return "<unknown>";
 }
 
-inline uint32 Guild::_GetRankRights(uint8 rankId) const
+// Not 'inline': Guild.h's HasAnyRankRight() calls this from other translation units.
+// An inline definition in this .cpp is not emitted for them (GCC/clang link error;
+// MSVC happens to keep a copy).
+uint32 Guild::_GetRankRights(uint8 rankId) const
 {
     if (const RankInfo* rankInfo = GetRankInfo(rankId))
         return rankInfo->GetRights();
