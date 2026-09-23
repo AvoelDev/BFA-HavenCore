@@ -335,3 +335,14 @@ SET `LogGuid` = `LogGuid` - 1000000
 WHERE `LogGuid` >= 1000001;
 
 DROP TEMPORARY TABLE IF EXISTS `tmp_guild_news_zero_id`;
+
+-- HavenCore: Guild News Flags carry only the sticky bit (retail: 0 or 1).
+-- (Follow-up to 2026_09_22_03_guild_overhaul.sql, which does not include this step.)
+--
+-- Achievement news used to store the achievement's SHOW_IN_GUILD_HEADER flag
+-- (0x2000) in guild_newslog.Flags. The 8.3.7 client's news sort only handles the
+-- sticky bit, so those rows made the order change on every reopen and pushed
+-- unpinned entries into the pinned section. Keep the sticky bit, drop the rest.
+-- Idempotent: rows that already hold only 0/1 are not touched.
+ 
+UPDATE `guild_newslog` SET `Flags` = `Flags` & 1 WHERE `Flags` > 1;
