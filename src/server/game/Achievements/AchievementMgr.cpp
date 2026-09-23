@@ -1094,6 +1094,13 @@ bool AchievementGlobalMgr::IsRealmCompleted(AchievementEntry const* achievement)
     if (itr->second == std::chrono::system_clock::time_point::min())
         return false;
 
+    // Completed before this server start (loaded from character_achievement /
+    // guild_achievement). Without this, 'now - max()' is negative, so kill-type
+    // realm firsts were considered open again after every restart (upstream
+    // TrinityCore has the same check).
+    if (itr->second == std::chrono::system_clock::time_point::max())
+        return true;
+
     // Allow completing the realm first kill for entire minute after first person did it
     // it may allow more than one group to achieve it (highly unlikely)
     // but apparently this is how blizz handles it as well
