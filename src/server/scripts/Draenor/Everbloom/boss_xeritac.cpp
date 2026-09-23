@@ -118,7 +118,7 @@ public:
                 if (chargeTimer <= diff)
                 {
                     chargeTimer = 5000;
-                    if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 500.0f))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 500.0f))
                     {
                         if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
                             me->GetMotionMaster()->MovementExpired();
@@ -176,9 +176,9 @@ public:
             _JustReachedHome();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
         }
 
         void JustDied(Unit* /*killer*/) override

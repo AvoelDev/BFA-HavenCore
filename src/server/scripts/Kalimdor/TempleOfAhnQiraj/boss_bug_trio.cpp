@@ -85,7 +85,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
         }
 
@@ -190,7 +190,7 @@ public:
             instance->SetData(DATA_BUG_TRIO_DEATH, 1);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
         }
 
@@ -219,8 +219,8 @@ public:
             if (KnockBack_Timer <= diff)
             {
                 DoCastVictim(SPELL_KNOCKBACK);
-                if (DoGetThreat(me->GetVictim()))
-                    DoModifyThreatPercent(me->GetVictim(), -80);
+                if (GetThreat(me->GetVictim()))
+                    ModifyThreatByPercent(me->GetVictim(), -80);
                 KnockBack_Timer = urand(15000, 25000);
             } else KnockBack_Timer -= diff;
 
@@ -293,7 +293,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
         }
 
@@ -307,7 +307,7 @@ public:
             if (Fear_Timer <= diff)
             {
                 DoCastVictim(SPELL_FEAR);
-                DoResetThreat();
+                ResetThreatList();
                 Fear_Timer = 20000;
             } else Fear_Timer -= diff;
 

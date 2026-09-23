@@ -1299,7 +1299,7 @@ class npc_madness_of_deathwing_mutated_corruption : public CreatureScript
                     me->Respawn();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (me->IsVisible())
                 {
@@ -1342,7 +1342,7 @@ class npc_madness_of_deathwing_mutated_corruption : public CreatureScript
 
                             if (!me->IsWithinMeleeRange(pTarget))
                             {
-                                Unit* pNearest = SelectTarget(SELECT_TARGET_NEAREST, 0, 0.0f, true);
+                                Unit* pNearest = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 0.0f, true);
                                 if (pNearest)
                                     pTarget = pNearest;
                             }
@@ -1356,7 +1356,7 @@ class npc_madness_of_deathwing_mutated_corruption : public CreatureScript
                             Unit* pNearest = NULL;
                             if (!me->GetVictim() || !me->IsWithinMeleeRange(me->GetVictim()))
                             {
-                                pNearest = SelectTarget(SELECT_TARGET_NEAREST, 0, 0.0f, true);
+                                pNearest = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 0.0f, true);
 
                                 // Cast Impale Aspect
                                 if (!pNearest || !me->IsWithinMeleeRange(pNearest))
@@ -1493,7 +1493,7 @@ class npc_madness_of_deathwing_limb_tentacle : public CreatureScript
                 ForceReset(NPC_BLISTERING_TENTACLE);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 phase = 0;
                 tentacles = 0;
@@ -1808,7 +1808,7 @@ class npc_madness_of_deathwing_regenerative_blood : public CreatureScript
                     AttackStart(target);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_UPDATE_HEALTH, 1000);
             }

@@ -556,7 +556,7 @@ class npc_spine_of_deathwing_corruption : public CreatureScript
                     pSpawner->DespawnOrUnsummon();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 events.ScheduleEvent(EVENT_SEARING_PLASMA, urand(1000, 8000));
                 events.ScheduleEvent(EVENT_FIERY_GRIP, urand(31000, 33000));
@@ -618,7 +618,7 @@ class npc_spine_of_deathwing_corruption : public CreatureScript
                         case EVENT_FIERY_GRIP:
                         {
                             Unit* pTarget = NULL;
-                            pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true, -SPELL_FIERY_GRIP);
+                            pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true, true, -SPELL_FIERY_GRIP);
                             if (!pTarget)
                                 pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true);
                             if (pTarget)
@@ -753,7 +753,7 @@ class npc_spine_of_deathwing_hideous_amalgamation : public CreatureScript
                 return 0;
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (IsHeroic())
                     events.ScheduleEvent(EVENT_BLOOD_CORRUPTION, urand(6000, 11000));
@@ -893,7 +893,7 @@ class npc_spine_of_deathwing_corrupted_blood : public CreatureScript
                         me->SetSpeed(MOVE_SWIM, 1.0f);
                         me->SetSpeed(MOVE_WALK, 1.0f);
                         me->SetSpeed(MOVE_FLIGHT, 1.0f);
-                        DoResetThreat();
+                        ResetThreatList();
                         me->SetReactState(REACT_AGGRESSIVE);
                         me->RemoveAura(SPELL_RESIDUE);
                         me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE));
@@ -908,7 +908,7 @@ class npc_spine_of_deathwing_corrupted_blood : public CreatureScript
                     if (!isDead)
                     {
                         isDead = true;
-                        DoResetThreat();
+                        ResetThreatList();
                         me->SetReactState(REACT_PASSIVE);
                         me->AttackStop();
                         me->AddUnitFlag(UnitFlags(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE));

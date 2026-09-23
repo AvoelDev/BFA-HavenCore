@@ -421,7 +421,7 @@ void hyjalAI::EnterEvadeMode(EvadeReason /*why*/)
 {
     if (me->GetEntry() != JAINA)
         me->RemoveAllAuras();
-    me->DeleteThreatList();
+    me->GetThreatManager().ClearAllThreat();
     me->CombatStop(true);
     me->LoadCreaturesAddon();
 
@@ -431,7 +431,7 @@ void hyjalAI::EnterEvadeMode(EvadeReason /*why*/)
     me->ResetLootRecipients();
 }
 
-void hyjalAI::EnterCombat(Unit* /*who*/)
+void hyjalAI::JustEngagedWith(Unit* /*who*/)
 {
     if (IsDummy)return;
     for (uint8 i = 0; i < HYJAL_AI_MAX_SPELLS; ++i)

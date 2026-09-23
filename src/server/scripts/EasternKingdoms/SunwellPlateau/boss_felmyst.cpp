@@ -156,7 +156,7 @@ public:
             instance->SetBossState(DATA_FELMYST, NOT_STARTED);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_BERSERK, 600000);
 
@@ -385,7 +385,7 @@ public:
                         uiFlightCount = 4;
                     break;
                 case 9:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT))
                         DoStartMovement(target);
                     else
                     {
@@ -397,7 +397,7 @@ public:
                     me->SetDisableGravity(false);
                     me->HandleEmoteCommand(EMOTE_ONESHOT_LAND);
                     EnterPhase(PHASE_GROUND);
-                    AttackStart(SelectTarget(SELECT_TARGET_TOPAGGRO));
+                    AttackStart(SelectTarget(SELECT_TARGET_MAXTHREAT));
                     break;
             }
             ++uiFlightCount;
@@ -529,7 +529,7 @@ public:
         }
 
         void Reset() override { }
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
             //DoCast(me, SPELL_VAPOR_FORCE, true); core bug
@@ -565,7 +565,7 @@ public:
         }
 
         void Reset() override { }
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void AttackStart(Unit* /*who*/) override { }
         void MoveInLineOfSight(Unit* /*who*/) override { }
 

@@ -302,7 +302,7 @@ class npc_slaincrewmember : public CreatureScript
                     case 4:
                         me->Say(CREW_SAY_5, LANG_UNIVERSAL);
                         me->SetFaction(14);
-                        me->AddThreat(player, 53.0f);
+                        me->GetThreatManager().AddThreat(player, 53.0f);
                         me->AI()->AttackStart(player);
                         QuestInProgress = false;
                         break;
@@ -556,7 +556,7 @@ public:
 
         }
 
-        void EnterCombat(Unit* /*Ent*/) override
+        void JustEngagedWith(Unit* /*Ent*/) override
         {
             events.ScheduleEvent(EVENT_TWILIGHT_BUFFET, 20000);
             events.ScheduleEvent(EVENT_TWILIGHT_FISSURE, 23000);
@@ -660,7 +660,7 @@ public:
             cSay = 1;                      // Start from 1
         }
 
-        void EnterCombat(Unit* /*Ent*/) override
+        void JustEngagedWith(Unit* /*Ent*/) override
         {
             Talk(SAY_AGGRO);
             DoCast(SPELL_EARTHBOLT);

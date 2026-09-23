@@ -519,7 +519,7 @@ class boss_ragnaros_firelands: public CreatureScript
                     me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                 }
 
-                void EnterCombat(Unit* /*who*/) override
+                void JustEngagedWith(Unit* /*who*/) override
                 {
                     me->AddAura(SPELL_BASE_VISUAL, me);
 
@@ -531,7 +531,7 @@ class boss_ragnaros_firelands: public CreatureScript
 
                     events.ScheduleEvent(EVENT_ENRAGE, 18 * MINUTE * IN_MILLISECONDS);
 
-                    _EnterCombat();
+                    _JustEngagedWith();
                 }
 
                 void DoAction(int32 const action) override
@@ -739,7 +739,7 @@ class boss_ragnaros_firelands: public CreatureScript
                             case EVENT_RAGE_OF_RAGNAROS:
                                 if (!IsHeroic()) // Only on normal.
                                 {
-                                    std::list<HostileReference*> m_threatlist = me->getThreatManager().getThreatList();
+                                    std::list<HostileReference*> m_threatlist = me->GetThreatManager().getThreatList();
                                     for (std::list<HostileReference*>::const_iterator i = m_threatlist.begin();
                                             i != m_threatlist.end(); ++i)
                                     {
@@ -790,7 +790,7 @@ class boss_ragnaros_firelands: public CreatureScript
                             }
                             case EVENT_SUL_SMASH_END:
                             {
-                                if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 80.0f, true))
+                                if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 80.0f, true))
                                     me->AI()->AttackStart(target);
                                 break;
                             }
@@ -804,7 +804,7 @@ class boss_ragnaros_firelands: public CreatureScript
                             case EVENT_WRATH_OF_RAGNAROS: // Not on tank!
                             {
                                 std::list<Unit*> targets;
-                                SelectTargetList(targets, RAID_MODE<int32>(1, 3, 1, 3), SELECT_TARGET_RANDOM, 200.0f, true);
+                                SelectTargetList(targets, RAID_MODE<int32>(1, 3, 1, 3), SELECT_TARGET_RANDOM, 0, 200.0f, true);
                                 if (!targets.empty())
                                     for (std::list<Unit*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
                                         DoCast(*itr, SPELL_WRATH_OF_RAGNAROS);
@@ -869,7 +869,7 @@ class boss_ragnaros_firelands: public CreatureScript
                                 me->AddAura(SPELL_BASE_VISUAL, me);
                                 me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                                 Talk(SAY_NEW_PHASE);
-                                if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 80.0f, true))
+                                if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 80.0f, true))
                                     me->AI()->AttackStart(target);
 
                                 intermission1InProgress = false;
@@ -892,7 +892,7 @@ class boss_ragnaros_firelands: public CreatureScript
                             case EVENT_MOLTEN_SEED:
                             {
                                 std::list<Unit*> targets;
-                                SelectTargetList(targets, RAID_MODE<int32>(10, 20, 10, 20), SELECT_TARGET_RANDOM,
+                                SelectTargetList(targets, RAID_MODE<int32>(10, 20, 10, 20), SELECT_TARGET_RANDOM, 0,
                                         200.0f, true);
                                 if (!targets.empty())
                                     for (std::list<Unit*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
@@ -999,7 +999,7 @@ class boss_ragnaros_firelands: public CreatureScript
                                 me->AddAura(SPELL_BASE_VISUAL, me);
                                 me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                                 Talk(SAY_NEW_PHASE);
-                                if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 80.0f, true))
+                                if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 80.0f, true))
                                     me->AI()->AttackStart(target);
 
                                 intermission2InProgress = false;
@@ -1112,7 +1112,7 @@ class npc_sulfuras_smash_trigger: public CreatureScript // 53266
                 uint32 m_uiSmashTimer;
                 uint32 m_uiDespawnTimer;
 
-                void EnterCombat(Unit* /*who*/) override
+                void JustEngagedWith(Unit* /*who*/) override
                 {
                 }
 
@@ -1168,7 +1168,7 @@ class npc_sulfuras_lava_wave: public CreatureScript // 53363
             }
 
             void Reset() override {}
-            void EnterCombat(Unit* /*who*/) override {}
+            void JustEngagedWith(Unit* /*who*/) override {}
             void EnterEvadeMode(EvadeReason /*why*/) override {}
 
             void MovementInform(uint32 type, uint32 id) override
@@ -1533,7 +1533,7 @@ class npc_molten_elemental: public CreatureScript
                 {
                     me->Attack(target, true);
                     me->GetMotionMaster()->MoveFollow(target, 0.0f, 0.0f);
-                    me->AddThreat(target, 1000000.0f);
+                    me->GetThreatManager().AddThreat(target, 1000000.0f);
                     //me->CastSpell(target, SPELL_ELEMENTAL_FIXATE, true);
                     // Not tauntable.
                     me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
@@ -1724,7 +1724,7 @@ class npc_living_meteor: public CreatureScript
             void SelectNextFollowTarget(ObjectGuid newTargetGuid = ObjectGuid::Empty)
             {
                 me->GetMotionMaster()->Clear();
-                me->getThreatManager().resetAllAggro();
+                me->GetThreatManager().resetAllAggro();
                 me->CastStop();
 
                 DoZoneInCombat();
@@ -1748,7 +1748,7 @@ class npc_living_meteor: public CreatureScript
                     return;
                 }
 
-                me->AddThreat(target, 1000000.0f);
+                me->GetThreatManager().AddThreat(target, 1000000.0f);
                 me->CastSpell(target, SPELL_FLAMING_FIXATE, false);
                 me->GetMotionMaster()->MoveFollow(target, 0.0f, 0.0f);
                 // Not tauntable.
@@ -1967,7 +1967,7 @@ class npc_malfurion: public CreatureScript
                 me->SetReactState(REACT_PASSIVE);
             }
 
-            void EnterCombat(Unit* /*pWho*/) override
+            void JustEngagedWith(Unit* /*pWho*/) override
             {
                 m_uiCloudTimer = 9000;
             }
@@ -2018,7 +2018,7 @@ class npc_cenarius: public CreatureScript
                 me->SetReactState(REACT_PASSIVE);
             }
 
-            void EnterCombat(Unit* /*pWho*/) override
+            void JustEngagedWith(Unit* /*pWho*/) override
             {
                 m_uiFrostyTimer = 12000;
             }
@@ -2072,7 +2072,7 @@ class npc_heartofragnaros: public CreatureScript
                 m_uiHeartBeat = 1000; //timer is here if you need it so just copy paste. To remove if script works without it.
             }
 
-            void EnterCombat(Unit* /*pWho*/) override
+            void JustEngagedWith(Unit* /*pWho*/) override
             {
             }
 
@@ -2127,7 +2127,7 @@ class npc_hamuul: public CreatureScript
                 me->SetReactState(REACT_PASSIVE);
             }
 
-            void EnterCombat(Unit* /*pWho*/) override
+            void JustEngagedWith(Unit* /*pWho*/) override
             {
                 m_uiRootTimer = 9000;
             }
@@ -2170,7 +2170,7 @@ class npc_blazing_heat: public CreatureScript
                 me->AddUnitFlag(UnitFlags(UNIT_FLAG_REMOVE_CLIENT_CONTROL | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
             }
 
-            void EnterCombat(Unit* /*pWho*/)  override {}
+            void JustEngagedWith(Unit* /*pWho*/)  override {}
             void UpdateAI(uint32 /*uiDiff*/) override {}
         };
 };

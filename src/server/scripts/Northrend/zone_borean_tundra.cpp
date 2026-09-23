@@ -104,7 +104,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -344,7 +344,7 @@ public:
         npc_nerubar_victimAI(Creature* creature) : ScriptedAI(creature) { }
 
         void Reset() override { }
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
 
@@ -438,7 +438,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
 
@@ -705,7 +705,7 @@ public:
             Creature* owner = GetOwner()->ToCreature();
             owner->RemoveAllAurasExceptType(SPELL_AURA_DUMMY);
             owner->CombatStop(true);
-            owner->DeleteThreatList();
+            owner->GetThreatManager().ClearAllThreat();
             owner->GetMotionMaster()->Clear(false);
             owner->GetMotionMaster()->MoveFollow(GetCaster(), 4.0f, 0.0f);
             owner->CastSpell(owner, SPELL_SUBDUED, true);
@@ -1439,7 +1439,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             if (me->IsValidAttackTarget(who))
                 AttackStart(who);
@@ -1551,7 +1551,7 @@ public:
             DoMeleeAttackIfReady();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
         }
 
@@ -2053,7 +2053,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void AttackStart(Unit* /*who*/) override { }
 
@@ -2415,7 +2415,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             if (me->IsValidAttackTarget(who))
                 AttackStart(who);

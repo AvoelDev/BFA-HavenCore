@@ -136,7 +136,7 @@ struct boss_skycap_kragg : public BossAI
                 mountGUID = mount->GetGUID();
                 me->EnterVehicle(mount);
                 mount->AI()->SetData(KraggDatas::DataMountInCombat, false);
-                mount->DeleteThreatList();
+                mount->GetThreatManager().ClearAllThreat();
             }
         }
     }
@@ -148,7 +148,7 @@ struct boss_skycap_kragg : public BossAI
             fightStarted = false;
             me->InterruptNonMeleeSpells(true);
             me->SetReactState(ReactStates::REACT_PASSIVE);
-            me->DeleteThreatList();
+            me->GetThreatManager().ClearAllThreat();
             me->CombatStop();
             me->CastStop();
             me->GetMotionMaster()->Clear();
@@ -163,7 +163,7 @@ struct boss_skycap_kragg : public BossAI
         Reset();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (instance)
         {

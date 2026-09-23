@@ -190,12 +190,12 @@ class boss_raigonn : public CreatureScript
                 }
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (Phase != PHASE_VULNERABILITY)
                     return;
 
-                _EnterCombat();
+                _JustEngagedWith();
             }
 
             void MovementInform(uint32 type, uint32 pointId) override
@@ -391,7 +391,7 @@ class boss_raigonn : public CreatureScript
                         me->SetReactState(REACT_AGGRESSIVE);
                         me->GetMotionMaster()->Clear();
 
-                        if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT))
                             AttackStart(target);
 
                         events.ScheduleEvent(EVENT_FIXATE, 30000, PHASE_VULNERABILITY);

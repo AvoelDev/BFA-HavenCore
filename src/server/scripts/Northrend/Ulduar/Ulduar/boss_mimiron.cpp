@@ -418,12 +418,12 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (!me->GetVehicleBase())
                 return;
 
-            _EnterCombat();
+            _JustEngagedWith();
             me->AddUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
             me->RemoveAurasDueToSpell(SPELL_WELD);
             DoCast(me->GetVehicleBase(), SPELL_SEAT_6);
@@ -1277,7 +1277,7 @@ public:
         {
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_MAGNETIC_FIELD, 14000);
         }
@@ -1291,9 +1291,9 @@ public:
 
             if (me->HasUnitState(UNIT_STATE_ROOT))
             {
-                if (Unit* newTarget = SelectTarget(SELECT_TARGET_NEAREST, 0, 30.0f, true))
+                if (Unit* newTarget = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 30.0f, true))
                 {
-                    me->DeleteThreatList();
+                    me->GetThreatManager().ClearAllThreat();
                     AttackStart(newTarget);
                 }
             }

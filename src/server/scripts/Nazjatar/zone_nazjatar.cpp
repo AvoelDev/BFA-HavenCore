@@ -234,7 +234,7 @@ struct boss_wekemara : public BossAI
         me->SetReactState(REACT_AGGRESSIVE);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         this->charges = 0;
         events.ScheduleEvent(EVENT_SPLIT, 1s);
@@ -325,7 +325,7 @@ struct boss_wekemara : public BossAI
         case EVENT_SHOCK_BURST:
         {
             UnitList tarlist;
-            SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 100.0f, true);
+            SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 0, 100.0f, true);
             for (Unit* targets : tarlist)
             {
                 DoCast(targets, SPELL_SHOCK_BURST_PERIODIC, true);
@@ -499,7 +499,7 @@ struct npc_unleashed_arcano_fiend : public ScriptedAI
         me->DespawnCreaturesInArea(153307);
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         events.ScheduleEvent(EVENT_ARCANE_BLAST, 1s);
         events.ScheduleEvent(EVENT_ARCANE_BOLT, 5s);
@@ -561,7 +561,7 @@ struct npc_urduu : public ScriptedAI
         ScriptedAI::Reset();
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         events.ScheduleEvent(EVENT_ANGRY_STOMP, 3s);
         events.ScheduleEvent(EVENT_CORAL_GROWTH, 5s);

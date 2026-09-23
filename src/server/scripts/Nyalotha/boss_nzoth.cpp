@@ -143,10 +143,10 @@ struct boss_nzoth : public BossAI
         }
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         Talk(SAY_AGGRO);
-        _EnterCombat();
+        _JustEngagedWith();
         this->phase1 = true;
         me->GetScheduler().Schedule(3s, [this] (TaskContext context)
         {
@@ -294,7 +294,7 @@ struct boss_nzoth : public BossAI
             if (this->phase2 == true)
             {
                 UnitList tarlist;
-                SelectTargetList(tarlist, 10, SELECT_TARGET_RANDOM, 100.0f, true);
+                SelectTargetList(tarlist, 10, SELECT_TARGET_RANDOM, 0, 100.0f, true);
                 for (Unit* target : tarlist)
                 {
                     Talk(SAY_CORRUPTING_OF_DEATHWING);
@@ -361,7 +361,7 @@ struct npc_psychus : public ScriptedAI
         me->SetPower(POWER_ENERGY, 0);
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         me->AddAura(SPELL_PERIODIC_ENERGY_GAIN);
         events.ScheduleEvent(EVENT_MINDWRACK, 3s);
@@ -445,7 +445,7 @@ struct npc_exposed_synapse : public ScriptedAI
         me->SetDisplayId(76612);
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         events.ScheduleEvent(EVENT_PROBE_MIND, 3s);
     }
@@ -498,7 +498,7 @@ struct npc_basher_tentacle : public ScriptedAI
         me->AddUnitState(UNIT_STATE_ROOT);
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         events.ScheduleEvent(EVENT_TUMULTUOUS_BURST, 1s);
         events.ScheduleEvent(EVENT_VOID_LASH, 3s);
@@ -576,7 +576,7 @@ struct npc_spike_tentacle : public ScriptedAI
     void JustDied(Unit* /*killer*/) override
     {
         UnitList tarlist;
-        SelectTargetList(tarlist, 10, SELECT_TARGET_RANDOM, 100.0f, true);
+        SelectTargetList(tarlist, 10, SELECT_TARGET_RANDOM, 0, 100.0f, true);
         for (Unit* target : tarlist)
         {
             me->CastSpell(target, EVENT_CORRUPTED_VISPERA);
@@ -646,7 +646,7 @@ struct npc_thought_harvester : public ScriptedAI
         ScriptedAI::Reset();
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
         events.ScheduleEvent(EVENT_HARVEST_THOUGHTS, 3s);
     }

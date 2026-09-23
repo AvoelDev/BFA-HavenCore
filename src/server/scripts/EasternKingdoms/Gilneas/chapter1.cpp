@@ -1088,7 +1088,7 @@ public:
             {
                 crowley->SetInCombatWith(me);
                 me->SetInCombatWith(crowley);
-                crowley->AddThreat(me, 10.0f);
+                crowley->GetThreatManager().AddThreat(me, 10.0f);
                 if (!crowley->GetVictim())
                     crowley->AI()->AttackStart(me);
             }
@@ -1235,7 +1235,7 @@ public:
             ScriptedAI::EnterEvadeMode(why);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             _events.ScheduleEvent(EVENT_SKIN_CROWLEY_SPELL, Milliseconds(SKIN_CROWLEY_SPELL_FIRST));
         }
@@ -3268,7 +3268,7 @@ public:
             DoStartNoMovement(who);
         }
 
-        void EnterCombat(Unit* /*victim*/) override { }
+        void JustEngagedWith(Unit* /*victim*/) override { }
 
         void UpdateAI(uint32 diff) override
         {

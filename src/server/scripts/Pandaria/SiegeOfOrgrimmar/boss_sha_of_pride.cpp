@@ -1109,7 +1109,7 @@ class boss_sha_of_pride : public CreatureScript
                     DoStartNoMovement(who);
             }
 
-            void EnterCombat(Unit* /*unit*/) override
+            void JustEngagedWith(Unit* /*unit*/) override
             {
                 Talk(SAY_AGGRO);
 
@@ -1257,7 +1257,7 @@ class boss_sha_of_pride : public CreatureScript
                             Talk(SAY_CORRUPTED_PRISON);
 
                             std::list<Unit*> targets;
-                            SelectTargetList(targets, ShadowPrisonTargetSelector(me), RAID_MODE(2, 4, 2, 4), SELECT_TARGET_RANDOM);
+                            SelectTargetList(targets, RAID_MODE(2, 4, 2, 4), SELECT_TARGET_RANDOM, 0, ShadowPrisonTargetSelector(me));
 
                             if (targets.size() > 1)
                             {
@@ -1805,7 +1805,7 @@ class npc_sha_of_pride_manifestation_of_pride : public CreatureScript
                 DoCast(me, SPELL_MANIFESTATION_SPAWN, true);
             }
 
-            void EnterCombat(Unit* /*unit*/)
+            void JustEngagedWith(Unit* /*unit*/)
             {
                 events.ScheduleEvent(EVENT_GET_READY, 3000);
             }
@@ -1885,7 +1885,7 @@ class npc_sha_of_pride_reflection : public CreatureScript
                 DoCast(me, SPELL_SELF_REFLECTION_SPAWN, true);
             }
 
-            void EnterCombat(Unit* /*unit*/)
+            void JustEngagedWith(Unit* /*unit*/)
             {
                 events.ScheduleEvent(EVENT_REFLECTION_DMG, 3000);
                 events.ScheduleEvent(EVENT_MOVE, 4000);
@@ -1975,7 +1975,7 @@ class npc_sha_of_pride_rift_of_corruption : public CreatureScript
                 {
                     m_CheckCloseTimer = 1000;
 
-                    if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 2.0f, true, -SPELL_WEAKENED_RESOLVE))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 2.0f, true, true, -SPELL_WEAKENED_RESOLVE))
                         DoClose(target);
                 }
                 else
@@ -2940,7 +2940,7 @@ class spell_sha_of_pride_self_reflection : public SpellScriptLoader
             {
                 if (Creature* pCreature = GetUnitOwner()->ToCreature())
                 {
-                    pCreature->AI()->SelectTargetList(m_Targets, 25, SELECT_TARGET_RANDOM, 0.0f, true);
+                    pCreature->AI()->SelectTargetList(m_Targets, 25, SELECT_TARGET_RANDOM, 0, 0.0f, true);
 
                     PrideOrderPred pred(false);
                     m_Targets.sort(pred);
@@ -3410,7 +3410,7 @@ class spell_sha_of_pride_banishment_aoe_1 : public SpellScriptLoader
                     const uint8 l_Count = pCreature->GetMap()->Is25ManRaid() ? BanishmentSizes::MAN_25 : BanishmentSizes::MAN_10;
 
                     std::list<Unit*> l_NewTargets;
-                    pCreature->AI()->SelectTargetList(l_NewTargets, BanishmentSelector(), l_Count, SelectAggroTarget::SELECT_TARGET_RANDOM);
+                    pCreature->AI()->SelectTargetList(l_NewTargets, l_Count, SelectAggroTarget::SELECT_TARGET_RANDOM, 0, BanishmentSelector());
 
                     for (auto l_Target : l_NewTargets)
                         p_Targets.push_back(l_Target);

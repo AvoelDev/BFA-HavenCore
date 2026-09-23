@@ -130,9 +130,9 @@ class boss_skeram : public CreatureScript
                     me->DespawnOrUnsummon();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 events.Reset();
 
                 events.ScheduleEvent(EVENT_ARCANE_EXPLOSION, urand(6000, 12000));
@@ -165,7 +165,7 @@ class boss_skeram : public CreatureScript
                             break;
                         case EVENT_BLINK:
                             DoCast(me, BlinkSpells[urand(0, 2)]);
-                            DoResetThreat();
+                            ResetThreatList();
                             me->SetVisible(true);
                             events.ScheduleEvent(EVENT_BLINK, urand(10000, 30000));
                             break;

@@ -153,12 +153,12 @@ struct boss_jadefire_masters : public BossAI
        }
    }
    
-   void EnterCombat(Unit* /*unit*/) override
+   void JustEngagedWith(Unit* /*unit*/) override
    {
        switch (me->GetEntry())
        {
        case NPC_MESTRAH:
-            _EnterCombat();
+            _JustEngagedWith();
             Talk(SAY_MESTRAH_AGGRO);
             DoCast(PERIODIC_ENERGY_GAIN);
             events.ScheduleEvent(EVENT_WHIRLING_JADE_STORM, 3s);
@@ -179,7 +179,7 @@ struct boss_jadefire_masters : public BossAI
             break;
 
        case NPC_MANCEROY_FLAMEFIST:            
-            _EnterCombat(); 
+            _JustEngagedWith(); 
             me->GetScheduler().Schedule(4s, [this] (TaskContext /*context*/)
             {
                 Talk(SAY_MANCEROY_AGGRO);
@@ -253,11 +253,11 @@ struct boss_jadefire_masters : public BossAI
             break;
 
        case NPC_SPIRIT_OF_XUEN:            
-            if (Unit* tar = SelectTarget(SELECT_TARGET_FARTHEST, 0, 500.0f, true))
+            if (Unit* tar = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 500.0f, true))
             {
                  summon->GetMotionMaster()->MoveChase(tar, 500.0f, PET_FOLLOW_ANGLE);
                  summon->AI()->AttackStart(tar);
-                 summon->AddThreat(tar, 1000.0f, SpellSchoolMask::SPELL_SCHOOL_MASK_NORMAL);
+                 summon->GetThreatManager().AddThreat(tar, 1000.0f);
                  if (tar->HasAura(285632))
                  {
                      return;
@@ -327,7 +327,7 @@ struct boss_jadefire_masters : public BossAI
            {
                Talk(SAY_MANCEROY_SEARING_EMBERS);
                UnitList tarlist;
-               SelectTargetList(tarlist, 5, SELECT_TARGET_RANDOM, 100.0f, true);
+               SelectTargetList(tarlist, 5, SELECT_TARGET_RANDOM, 0, 100.0f, true);
                for (Unit* tar : tarlist)
                DoCast(tar, SEARING_EMBERS);
            }      
@@ -594,7 +594,7 @@ struct npc_spirit_of_xuen : public ScriptedAI
         ScriptedAI::Reset();
     }
 
-    void EnterCombat(Unit* u) override
+    void JustEngagedWith(Unit* u) override
     {
         me->GetScheduler().Schedule(3s, [this] (TaskContext context)
         {

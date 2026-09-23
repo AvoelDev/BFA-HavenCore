@@ -826,7 +826,7 @@ public:
             RPevents.ScheduleEvent(EVENT_START_HEADS, 10000);
         }
 
-        void EnterCombat(Unit* /*unit*/)
+        void JustEngagedWith(Unit* /*unit*/)
         {
             // Just Berserk scheduled here, the other events are handled by the specific heads / through happenings (ex. a head dies -> Rampage, etc).
             events.ScheduleEvent(EVENT_BERSERK, (me->GetMap()->IsHeroic() ? TIMER_BERSERK_H : TIMER_BERSERK));
@@ -869,7 +869,7 @@ public:
                 instance->SetBossState(DATA_MEGAERA, IN_PROGRESS);
             }
 
-            _EnterCombat();
+            _JustEngagedWith();
         }
 
         void DoAction(int32 action)
@@ -944,7 +944,7 @@ public:
                 RemoveSummonFrame(NPC_ARCANE_HEAD);
 
             me->RemoveAllAuras();
-            me->DeleteThreatList();
+            me->GetThreatManager().ClearAllThreat();
             me->CombatStop(true);
             me->GetMotionMaster()->MovementExpired();
             me->GetMotionMaster()->MoveTargetedHome();
@@ -1339,7 +1339,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/)
+        void JustEngagedWith(Unit* /*who*/)
         {
             events.ScheduleEvent(EVENT_CHECK_MEGAERAS_RAGE, 18000);
             events.ScheduleEvent(EVENT_CINDERS, urand(10000, 15000));
@@ -1383,7 +1383,7 @@ public:
                             if (CAST_AI(boss_megaera::boss_megaeraAI, Megaera->AI())->isRampaging == false)
                             {
                                 std::list<Unit*> targets;
-                                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
                                 if (!targets.empty())
                                     if (targets.size() >= 1)
                                         targets.resize(1);
@@ -1496,7 +1496,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/)
+        void JustEngagedWith(Unit* /*who*/)
         {
             events.ScheduleEvent(EVENT_CHECK_MEGAERAS_RAGE, 18900);
             events.ScheduleEvent(EVENT_TORRENT_OF_ICE, 14000);
@@ -1578,7 +1578,7 @@ public:
                             if (CAST_AI(boss_megaera::boss_megaeraAI, Megaera->AI())->isRampaging == false)
                             {
                                 std::list<Unit*> targets;
-                                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
                                 if (!targets.empty())
                                     if (targets.size() >= 1)
                                         targets.resize(1);
@@ -1597,7 +1597,7 @@ public:
                                         torrent->SetReactState(REACT_PASSIVE);
                                         me->InterruptNonMeleeSpells(true);
                                         me->CastSpell(torrent, SPELL_TORRENT_OF_ICE);
-                                        torrent->AddThreat((*itr), 99999999.9f);
+                                        torrent->GetThreatManager().AddThreat((*itr), 99999999.9f);
                                     }
                                 }
                             }
@@ -1705,7 +1705,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/)
+        void JustEngagedWith(Unit* /*who*/)
         {
             events.ScheduleEvent(EVENT_CHECK_MEGAERAS_RAGE, 19800);
             events.ScheduleEvent(EVENT_ACID_RAIN, urand(12000, 17000));
@@ -1851,7 +1851,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/)
+        void JustEngagedWith(Unit* /*who*/)
         {
             events.ScheduleEvent(EVENT_CHECK_MEGAERAS_RAGE, 20600);
             events.ScheduleEvent(EVENT_NETHER_TEAR, urand(12000, 17000));
@@ -1894,7 +1894,7 @@ public:
                             if (CAST_AI(boss_megaera::boss_megaeraAI, Megaera->AI())->isRampaging == false)
                             {
                                 std::list<Unit*> targets;
-                                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
                                 if (!targets.empty())
                                     if (targets.size() >= 1)
                                         targets.resize(1);

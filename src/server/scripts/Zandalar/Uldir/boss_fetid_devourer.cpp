@@ -88,9 +88,9 @@ struct boss_fetid_devourer : public BossAI
         IsLock = true;
     }
 
-    void EnterCombat(Unit* /*unit*/) override
+    void JustEngagedWith(Unit* /*unit*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
         DoCastSelf(SPELL_PERIODIC_ENERGY_GAIN);
         events.ScheduleEvent(EVENT_TERRIBLE_THRASH, 4s);
         events.ScheduleEvent(EVENT_MALODOROUS_MIASMA, 8s);
@@ -192,9 +192,9 @@ struct boss_fetid_devourer : public BossAI
         {
         case EVENT_TERRIBLE_THRASH:
         {
-            if (Unit* tank = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.0f, true))
+            if (Unit* tank = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.0f, true))
             {
-                if ((tank = SelectTarget(SELECT_TARGET_NEAREST, 0, 25.0f, true)))
+                if ((tank = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 25.0f, true)))
                 {
                     me->CastSpell(tank, SPELL_TERRIBLE_THRASH_DAMAGE, false);
                 }
@@ -205,7 +205,7 @@ struct boss_fetid_devourer : public BossAI
         case EVENT_MALODOROUS_MIASMA:
         {
             UnitList tarlist;
-            SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 500.0f, true);
+            SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 0, 500.0f, true);
             for (Unit* targets : tarlist)
             {
                 me->AddAura(SPELL_MALODOROUS_MIASMA_AURA, targets);

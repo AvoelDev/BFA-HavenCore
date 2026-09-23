@@ -94,7 +94,7 @@ public:
             if (Player* player = me->SelectRandomPlayerInRange(100.0f, true))
             {
                 m_PlayerTargetGuid = player->GetGUID();
-                me->AddThreat(player, 1000000.0f);
+                me->GetThreatManager().AddThreat(player, 1000000.0f);
                 me->CastSpell(player, uint32(Spells::FIXATE));
                 events.ScheduleEvent(uint32(Events::UPDATE_POSITION), 500);
             }
@@ -181,7 +181,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(uint32(Events::BLAZE_OF_GLORY), 2000);
         }
@@ -382,9 +382,9 @@ public:
         }
 
 
-        void EnterCombat(Unit* /*unit*/)
+        void JustEngagedWith(Unit* /*unit*/)
         {
-            _EnterCombat();
+            _JustEngagedWith();
 
             events.ScheduleEvent(uint32(Events::PIERCE_ARMOR), 6000);
             events.ScheduleEvent(uint32(Events::SUMMON_SOLAR_FLARE), 10000);

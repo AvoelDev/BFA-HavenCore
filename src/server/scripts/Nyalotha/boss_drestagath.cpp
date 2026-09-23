@@ -123,9 +123,9 @@ struct boss_drestagath : public BossAI
 			me->SummonCreature(NPC_EYE_OF_DRESTAGATH, -530.989f, 213.483f, -484.662f, 4.833f, TEMPSUMMON_MANUAL_DESPAWN);
 	}
 
-	void EnterCombat(Unit* /*who*/) override
+	void JustEngagedWith(Unit* /*who*/) override
 	{
-		_EnterCombat();
+		_JustEngagedWith();
 		events.ScheduleEvent(EVENT_DRESTAGATH_ENERGY, 100ms);
 		events.ScheduleEvent(EVENT_VOLATILE_SEED, 3s);
 		events.ScheduleEvent(EVENT_ENTROPIC_CRASH, 15s);
@@ -267,7 +267,7 @@ struct boss_drestagath : public BossAI
 			break;
 
 		case EVENT_VOLATILE_SEED:
-			if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.0f, true))
+			if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.0f, true))
 				me->CastSpell(target, SPELL_VOLATILE_SEED, false);
 			events.Repeat(18s);
 			break;
@@ -387,7 +387,7 @@ struct npc_eye_of_drestagath : public ScriptedAI
 		me->AddAura(AURA_OVERRIDE_POWER_COLOR_RAGE);
 	}
 
-	void EnterCombat(Unit* /*who*/) override
+	void JustEngagedWith(Unit* /*who*/) override
 	{
 		if (instance)
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -447,7 +447,7 @@ struct npc_tentacle_of_drestagath : public ScriptedAI
 			unit->RemoveAura(SPELL_VOID_MISMA_AT_DAMAGE);
 	}
 
-	void EnterCombat(Unit* /*who*/) override
+	void JustEngagedWith(Unit* /*who*/) override
 	{
 		if (instance)
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -459,7 +459,7 @@ struct npc_tentacle_of_drestagath : public ScriptedAI
 		switch (eventId)
 		{
 		case EVENT_CRUSHING_SLAM:
-			if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 5.0f, true))
+			if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 5.0f, true))
 				me->CastSpell(target, SPELL_CRUSHING_SLAM, false);
 			events.Repeat(15s);
 			break;
@@ -509,7 +509,7 @@ struct npc_maw_of_drestagath : public ScriptedAI
 		}
 	}
 
-	void EnterCombat(Unit* /*who*/) override
+	void JustEngagedWith(Unit* /*who*/) override
 	{
 		if (instance)
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);

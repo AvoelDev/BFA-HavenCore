@@ -104,9 +104,9 @@ class boss_echo_of_baine : public CreatureScript
                 }
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 me->SetSpeed(MOVE_WALK, 2.0f);
                 me->SetSpeed(MOVE_RUN, 2.0f);
 
@@ -153,7 +153,7 @@ class boss_echo_of_baine : public CreatureScript
                             }
                             break;
                         case EVENT_PULVERIZE:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0))
+                            if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0))
                             {
                                 DoCast(target, SPELL_PULVERIZE);
                                 events.ScheduleEvent(EVENT_PULVERIZE, 40000);

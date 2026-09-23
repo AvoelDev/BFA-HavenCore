@@ -237,7 +237,7 @@ class boss_shannox : public CreatureScript
                 }
             }
 
-            void EnterCombat(Unit* /*attacker*/) override
+            void JustEngagedWith(Unit* /*attacker*/) override
             {
                 if (Creature* pRiplimb = me->FindNearestCreature(NPC_RIPLIMB, 300.0f))
                     DoZoneInCombat(pRiplimb);
@@ -454,7 +454,7 @@ class npc_shannox_riplimb : public CreatureScript
                     DoCast(me, SPELL_FEEDING_FRENZY, true);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (Creature* pShannox = me->FindNearestCreature(NPC_SHANNOX, 300.0f))
                     DoZoneInCombat(pShannox);
@@ -651,7 +651,7 @@ class npc_shannox_rageface : public CreatureScript
                     DoCast(me, SPELL_FEEDING_FRENZY, true);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (Creature* pShannox = me->FindNearestCreature(NPC_SHANNOX, 300.0f))
                     DoZoneInCombat(pShannox);
@@ -675,9 +675,9 @@ class npc_shannox_rageface : public CreatureScript
                     if (int32(damage) >= aurEff->GetAmount())
                     {
                         me->InterruptSpell(CURRENT_CHANNELED_SPELL, false);
-                        DoResetThreat();
+                        ResetThreatList();
                         DoCast(who, SPELL_RAGE, true);
-                        me->AddThreat(who, 10000000.0f);
+                        me->GetThreatManager().AddThreat(who, 10000000.0f);
                         AttackStart(who);
                         events.ScheduleEvent(EVENT_FACE_RAGE, 27000);
                         me->RemoveAurasDueToSpell(RAID_MODE(100129, 101212, 101213, 101214));
@@ -737,12 +737,12 @@ class npc_shannox_rageface : public CreatureScript
                         case EVENT_CHANGE_TARGET:
                             if (pInstance && !(me->GetVictim() && me->GetVictim()->HasAura(SPELL_RAGE)) && !me->HasAura(SPELL_FACE_RAGE_DUMMY))
                             {
-                                DoResetThreat();
+                                ResetThreatList();
                                 if (Creature* pShannox = ObjectAccessor::GetCreature(*me, pInstance->GetGuidData(DATA_SHANNOX)))
                                 {
                                     if (Unit* pTarget = pShannox->AI()->SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true))
                                     {
-                                        me->AddThreat(pTarget, 10000000.0f);
+                                        me->GetThreatManager().AddThreat(pTarget, 10000000.0f);
                                         AttackStart(pTarget);
                                     }
                                 }
@@ -751,7 +751,7 @@ class npc_shannox_rageface : public CreatureScript
                                     if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true))
                                     {
 
-                                        me->AddThreat(pTarget, 10000000.0f);
+                                        me->GetThreatManager().AddThreat(pTarget, 10000000.0f);
                                         AttackStart(pTarget);
                                     }
                                 }

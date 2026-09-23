@@ -160,7 +160,7 @@ public:
         uint32 _spell;
         uint32 _spell2;
         void Reset() override { }
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void SetType(uint32 _type)
         {
             switch (Creaturetype = _type)
@@ -258,7 +258,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void SaySound(uint8 textEntry, Unit* target = nullptr)
         {
@@ -502,7 +502,7 @@ public:
             ++id;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             instance->SetBossState(DATA_HORSEMAN_EVENT, IN_PROGRESS);
             DoZoneInCombat();
@@ -603,14 +603,6 @@ public:
                 DoCast(me, SPELL_HEAD);
                 caster->GetMotionMaster()->Clear(false);
                 caster->GetMotionMaster()->MoveFollow(me, 6, float(urand(0, 5)));
-                //DoResetThreat();//not sure if need
-                ThreatContainer::StorageType threatlist = caster->getThreatManager().getThreatList();
-                for (ThreatContainer::StorageType::const_iterator itr = threatlist.begin(); itr != threatlist.end(); ++itr)
-                {
-                    Unit* unit = ObjectAccessor::GetUnit(*me, (*itr)->getUnitGuid());
-                    if (unit && unit->IsAlive() && unit != caster)
-                        me->AddThreat(unit, caster->getThreatManager().getThreat(unit));
-                }
             }
         }
 
@@ -821,7 +813,7 @@ public:
             me->AddUnitFlag(UNIT_FLAG_STUNNED);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void SpellHit(Unit* /*caster*/, const SpellInfo* spell) override
         {
@@ -860,7 +852,7 @@ public:
             if (!who || !me->IsValidAttackTarget(who) || me->GetVictim())
                 return;
 
-            me->AddThreat(who, 0.0f);
+            AddThreat(who, 0.0f);
             if (sprouted)
                 DoStartMovement(who);
         }

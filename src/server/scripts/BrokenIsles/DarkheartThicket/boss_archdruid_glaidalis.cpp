@@ -153,7 +153,7 @@ public:
             instance->SetBossState(DATA_ARCHDRUID_GLAIDALIS, FAIL);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             me->setActive(true);
             DoZoneInCombat();
@@ -408,7 +408,7 @@ class spell_archdruid_glaidalis_grevious_leap_first : public SpellScript
         if (!caster || !caster->GetAI())
             return;
 
-        Unit* target = caster->GetAI()->SelectTarget(SELECT_TARGET_TOPAGGRO);
+        Unit* target = caster->GetAI()->SelectTarget(SELECT_TARGET_MAXTHREAT);
         if (!target)
             return;
 

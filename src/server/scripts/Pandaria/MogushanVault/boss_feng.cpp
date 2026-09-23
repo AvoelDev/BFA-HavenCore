@@ -337,7 +337,7 @@ class boss_feng : public CreatureScript
                 _JustReachedHome();
             }
 
-            void EnterCombat(Unit* attacker) override
+            void JustEngagedWith(Unit* attacker) override
             {
                 if (!pInstance->CheckRequiredBosses(DATA_FENG) || attacker->GetPositionX() < 4009.0f || attacker->GetPositionX() > 4076.0f)
                 {
@@ -622,7 +622,7 @@ class boss_feng : public CreatureScript
                         if (Unit* target = me->GetVictim())
                             me->CastSpell(target, dotSpellId, false);
 
-                        /*else if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO))
+                        /*else if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT))
                             me->CastSpell(target, dotSpellId, false);*/
 
                         events.ScheduleEvent(EVENT_DOT_ATTACK, 12500);
@@ -630,7 +630,7 @@ class boss_feng : public CreatureScript
                     }
                     case EVENT_RE_ATTACK:
                     {
-                        if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT))
                         {
                             me->GetMotionMaster()->MoveChase(target);
                         }

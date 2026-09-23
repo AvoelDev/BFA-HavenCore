@@ -235,7 +235,7 @@ class boss_blackhand : public CreatureScript
                 Talk(eTalks::TalkSlay);
             }
 
-            void EnterCombat(Unit* /*p_Attacker*/) override
+            void JustEngagedWith(Unit* /*p_Attacker*/) override
             {
                 me->SetWalk(false);
 
@@ -243,7 +243,7 @@ class boss_blackhand : public CreatureScript
 
                 me->HandleEmoteCommand(0);
 
-                _EnterCombat();
+                _JustEngagedWith();
 
                 if (m_Instance != nullptr)
                 {
@@ -344,7 +344,7 @@ class boss_blackhand : public CreatureScript
                 {
                     case eSpells::ShatteringSmashCast:
                     {
-                        me->getThreatManager().modifyThreatPercent(p_Target, -100);
+                        me->GetThreatManager().ModifyThreatByPercent(p_Target, -100);
                         break;
                     }
                     case eSpells::ImpalingThrowPlayer:
@@ -745,7 +745,7 @@ class boss_blackhand : public CreatureScript
                         if (m_PhaseID != ePhases::StorageWarehouse)
                             break;
 
-                        std::list<HostileReference*> l_ThreatList = me->getThreatManager().getThreatList();
+                        std::list<HostileReference*> l_ThreatList = me->GetThreatManager().getThreatList();
                         if (!l_ThreatList.empty())
                         {
                             l_ThreatList.remove_if([this](HostileReference* p_Ref) -> bool
@@ -1609,7 +1609,7 @@ class npc_foundry_siegemaker : public CreatureScript
                     if ([[maybe_unused]] TempSummon* l_Temp = me->ToTempSummon())
                     {
                         if (Unit* l_Owner = me->ToTempSummon()->GetSummoner())
-                            EnterCombat(l_Owner->GetVictim());
+                            JustEngagedWith(l_Owner->GetVictim());
                     }
 
                     //AddTimedDelayedOperation(1 * TimeConstants::IN_MILLISECONDS, [this]() -> void
@@ -1636,8 +1636,8 @@ class npc_foundry_siegemaker : public CreatureScript
                     {
                         m_Target = p_Target->GetGUID();
 
-                        DoResetThreat();
-                        me->AddThreat(p_Target, 1000000.0f);
+                        ResetThreatList();
+                        me->GetThreatManager().AddThreat(p_Target, 1000000.0f);
 
                         AttackStart(p_Target);
 
@@ -1668,7 +1668,7 @@ class npc_foundry_siegemaker : public CreatureScript
                 }
             }
 
-            void EnterCombat(Unit* /*p_Attacker*/) override
+            void JustEngagedWith(Unit* /*p_Attacker*/) override
             {
                 if (me->GetReactState() == ReactStates::REACT_PASSIVE)
                     return;

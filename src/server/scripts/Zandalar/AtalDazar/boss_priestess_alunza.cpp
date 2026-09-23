@@ -142,7 +142,7 @@ struct boss_priestess_alunza : public BossAI
         BossAI::Reset();
     }
 
-    void EnterCombat(Unit* who) override
+    void JustEngagedWith(Unit* who) override
     {
         Talk(TALK_AGGRO);
         instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -159,7 +159,7 @@ struct boss_priestess_alunza : public BossAI
         me->RemoveAurasDueToSpell(SPELL_PRE_RITUAL);
         me->AddAura(SPELL_ENERGY_REGEN, me);
 
-        BossAI::EnterCombat(who);
+        BossAI::JustEngagedWith(who);
     }
 
     void DoAction(int32 action) override
@@ -407,14 +407,14 @@ struct npc_spirit_of_gold : public ScriptedAI
         ScriptedAI::UpdateAI(diff);
         if (AreaTrigger* at = me->SelectNearestAreaTrigger(SPELL_TAINTED_BLOOD_CREATE_AT, 100.0f))
         {
-            me->getThreatManager().resetAllAggro();
+            me->GetThreatManager().resetAllAggro();
             me->GetMotionMaster()->MovePoint(0, at->GetPosition());
         }
         else
             if (Player* player = me->SelectNearestPlayer(100.0f))
             {
                 me->SetReactState(REACT_AGGRESSIVE);
-                me->getThreatManager().addThreat(player, 1000000.0f);
+                me->GetThreatManager().AddThreat(player, 1000000.0f);
                 me->GetMotionMaster()->MoveChase(player);
                 me->Attack(player, true);
             }

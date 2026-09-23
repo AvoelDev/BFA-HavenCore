@@ -260,7 +260,7 @@ class boss_anubarak_trial : public CreatureScript
                         summoned->SetDisplayFromModel(0);
                         if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
                         {
-                            summoned->CombatStart(target);
+                            summoned->EngageWithTarget(target);
                             Talk(EMOTE_SPIKE, target);
                         }
                         break;
@@ -270,9 +270,9 @@ class boss_anubarak_trial : public CreatureScript
                 summons.Summon(summoned);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 Talk(SAY_AGGRO);
                 me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
 
@@ -709,7 +709,7 @@ class npc_anubarak_spike : public CreatureScript
                 return victim->GetTypeId() == TYPEID_PLAYER;
             }
 
-            void EnterCombat(Unit* who) override
+            void JustEngagedWith(Unit* who) override
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
                 {
@@ -813,12 +813,11 @@ class npc_anubarak_spike : public CreatureScript
                 DoCast(who, SPELL_MARK);
                 me->SetSpeedRate(MOVE_RUN, 0.5f);
                 // make sure the Spine will really follow the one he should
-                me->getThreatManager().clearReferences();
+                ResetThreatList();
                 me->SetInCombatWithZone();
-                me->getThreatManager().addThreat(who, std::numeric_limits<float>::max());
+                AddThreat(who, 1000000.0f);
                 me->GetMotionMaster()->Clear(true);
                 me->GetMotionMaster()->MoveChase(who);
-                me->TauntApply(who);
             }
 
             private:

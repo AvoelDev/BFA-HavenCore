@@ -584,7 +584,7 @@ struct gunship_npc_AI : public ScriptedAI
         if (!me->IsAlive() || !me->IsInCombat())
             return;
 
-        me->DeleteThreatList();
+        me->GetThreatManager().ClearAllThreat();
         me->CombatStop(true);
         me->GetMotionMaster()->MoveTargetedHome();
     }
@@ -639,7 +639,7 @@ protected:
 
             return me->GetVictim() != nullptr;
         }
-        else if (me->getThreatManager().isThreatListEmpty())
+        else if (me->GetThreatManager().IsThreatListEmpty())
         {
             EnterEvadeMode(EVADE_REASON_OTHER);
             return false;
@@ -728,7 +728,7 @@ class npc_gunship : public CreatureScript
                 {
                     Creature* stalker = *itr;
                     stalker->RemoveAllAuras();
-                    stalker->DeleteThreatList();
+                    stalker->GetThreatManager().ClearAllThreat();
                     stalker->CombatStop(true);
                 }
 
@@ -868,7 +868,7 @@ class npc_high_overlord_saurfang_igb : public CreatureScript
                 _rocketeersYellCooldown = time_t(0);
             }
 
-            void EnterCombat(Unit* /*target*/) override
+            void JustEngagedWith(Unit* /*target*/) override
             {
                 _events.SetPhase(PHASE_COMBAT);
                 DoCast(me, _instance->GetData(DATA_TEAM_IN_INSTANCE) == HORDE ? SPELL_FRIENDLY_BOSS_DAMAGE_MOD : SPELL_MELEE_TARGETING_ON_ORGRIMS_HAMMER, true);
@@ -881,7 +881,7 @@ class npc_high_overlord_saurfang_igb : public CreatureScript
                 if (!me->IsAlive())
                     return;
 
-                me->DeleteThreatList();
+                me->GetThreatManager().ClearAllThreat();
                 me->CombatStop(true);
                 me->GetMotionMaster()->MoveTargetedHome();
 
@@ -1136,7 +1136,7 @@ class npc_muradin_bronzebeard_igb : public CreatureScript
                 _mortarYellCooldown = time_t(0);
             }
 
-            void EnterCombat(Unit* /*target*/) override
+            void JustEngagedWith(Unit* /*target*/) override
             {
                 _events.SetPhase(PHASE_COMBAT);
                 DoCast(me, _instance->GetData(DATA_TEAM_IN_INSTANCE) == ALLIANCE ? SPELL_FRIENDLY_BOSS_DAMAGE_MOD : SPELL_MELEE_TARGETING_ON_SKYBREAKER, true);
@@ -1149,7 +1149,7 @@ class npc_muradin_bronzebeard_igb : public CreatureScript
                 if (!me->IsAlive())
                     return;
 
-                me->DeleteThreatList();
+                me->GetThreatManager().ClearAllThreat();
                 me->CombatStop(true);
                 me->GetMotionMaster()->MoveTargetedHome();
 
@@ -1483,7 +1483,7 @@ struct npc_gunship_boarding_addAI : public gunship_npc_AI
             {
                 players.sort(Trinity::ObjectDistanceOrderPred(me));
                 for (std::list<Player*>::iterator itr = players.begin(); itr != players.end(); ++itr)
-                    me->AddThreat(*itr, 1.0f);
+                    AddThreat(*itr, 1.0f);
 
                 AttackStart(players.front());
             }
@@ -1561,9 +1561,9 @@ class npc_gunship_boarding_leader : public CreatureScript
             {
             }
 
-            void EnterCombat(Unit* target) override
+            void JustEngagedWith(Unit* target) override
             {
-                npc_gunship_boarding_addAI::EnterCombat(target);
+                npc_gunship_boarding_addAI::JustEngagedWith(target);
                 _events.ScheduleEvent(EVENT_BLADESTORM, urand(13000, 18000));
                 _events.ScheduleEvent(EVENT_WOUNDING_STRIKE, urand(8000, 10000));
             }

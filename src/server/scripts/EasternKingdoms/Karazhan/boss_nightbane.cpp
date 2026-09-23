@@ -164,7 +164,7 @@ public:
             instance->HandleGameObject(instance->GetGuidData(DATA_MASTERS_TERRACE_DOOR_2), open);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             instance->SetBossState(DATA_NIGHTBANE, IN_PROGRESS);
 
@@ -404,7 +404,7 @@ public:
 
                 if (FireballBarrageTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0))
                         DoCast(target, SPELL_FIREBALL_BARRAGE);
                     FireballBarrageTimer = 20000;
                 } else FireballBarrageTimer -= diff;

@@ -106,9 +106,9 @@ class boss_ragnaros : public CreatureScript
                 me->SetEmoteState(EMOTE_ONESHOT_NONE);
             }
 
-            void EnterCombat(Unit* victim) override
+            void JustEngagedWith(Unit* victim) override
             {
-                BossAI::EnterCombat(victim);
+                BossAI::JustEngagedWith(victim);
                 events.ScheduleEvent(EVENT_ERUPTION, 15000);
                 events.ScheduleEvent(EVENT_WRATH_OF_RAGNAROS, 30000);
                 events.ScheduleEvent(EVENT_HAND_OF_RAGNAROS, 25000);
@@ -248,7 +248,7 @@ class boss_ragnaros : public CreatureScript
                                     //is not very well supported in the core //no it really isnt
                                     //so added normaly spawning and banish workaround and attack again after 90 secs.
                                     me->AttackStop();
-                                    DoResetThreat();
+                                    ResetThreatList();
                                     me->SetReactState(REACT_PASSIVE);
                                     me->InterruptNonMeleeSpells(false);
                                     //Root self

@@ -216,7 +216,7 @@ class boss_warlord_zonozz: public CreatureScript
                 BossAI::MoveInLineOfSight(who);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 if (instance->GetBossState(DATA_MORCHOK) != DONE)
                 {
@@ -280,7 +280,7 @@ class boss_warlord_zonozz: public CreatureScript
                 {
                     case NPC_VOID_OF_THE_UNMAKING_1:
                         summon->SetOrientation(me->GetOrientation());
-                        if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 120.0f, true)) //Agrega estos
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 120.0f, true)) //Agrega estos
                             posPlayer = target->GetPosition(); //Agrega esto
                         DoCast(summon, SPELL_VOID_OF_THE_UNMAKING_DUMMY_1);
                         break;
@@ -700,7 +700,7 @@ public:
             me->AddUnitFlag(UNIT_FLAG_REMOVE_CLIENT_CONTROL);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_SLUDGE_SPEW, 5000);
             events.ScheduleEvent(EVENT_WILD_FLAIL, urand(1500, 15000));
@@ -754,7 +754,7 @@ public:
         InstanceScript* instance;
         EventMap events;
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_SHADOW_GAZE, 1000);
             me->AddUnitFlag(UNIT_FLAG_REMOVE_CLIENT_CONTROL);
@@ -814,7 +814,7 @@ class npc_warlord_zonozz_tentacle : public CreatureScript
                 me->AddUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 switch (me->GetEntry())
                 {
@@ -860,7 +860,7 @@ class npc_warlord_zonozz_tentacle : public CreatureScript
                             events.ScheduleEvent(EVENT_OOZE_SPIT, 6000);
                             break;
                         case EVENT_SHADOW_GAZE:
-                            if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, -int32((SPELL_SHADOW_GAZE))))
+                            if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, true, -int32((SPELL_SHADOW_GAZE))))
                                 DoCast(pTarget, SPELL_SHADOW_GAZE);
                             events.ScheduleEvent(EVENT_SHADOW_GAZE, urand(8000, 15000));
                             break;

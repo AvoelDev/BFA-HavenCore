@@ -359,7 +359,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             me->SetPower(POWER_ENERGY, 0);
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
@@ -826,7 +826,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(EVENT_PERVASIVE_SHOCK, TIMER_PERVASIVE_SHOCK);
         }
@@ -928,7 +928,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(EVENT_SHOCKING_LIGHTNING, TIMER_SHOCKING_LIGHTNING);
         }
@@ -948,7 +948,7 @@ public:
                 switch (eventId)
                 {
                 case EVENT_SHOCKING_LIGHTNING:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, true, 0))
                         me->CastSpell(target, SPELL_SHOCKING_LIGHTNING);
                     events.ScheduleEvent(EVENT_CONDUCTIVE_PULSE, TIMER_CONDUCTIVE_PULSE);
                     break;
@@ -990,7 +990,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(EVENT_POWERFUL_STOMP, TIMER_POWERFUL_STOMP);
         }
@@ -1091,7 +1091,7 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(EVENT_AQUA_LANCE, TIMER_AQUA_LANCE);
         }
@@ -1112,7 +1112,7 @@ public:
                 {
                 case EVENT_AQUA_LANCE:
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, true, 0))
                     {
                         std::ostringstream str;
                         str << target->GetName() << " has been targeted for |cFFF00000|h[Aqua Lance]|h|r";

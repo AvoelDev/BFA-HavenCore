@@ -256,7 +256,7 @@ struct boss_twin_baseAI : public BossAI
         return ObjectAccessor::GetCreature((*me), instance->GetGuidData(SisterNpcId));
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         me->SetInCombatWithZone();
         if (Creature* pSister = GetSister())
@@ -311,7 +311,7 @@ struct boss_twin_baseAI : public BossAI
                 events.ScheduleEvent(EVENT_TWIN_SPIKE, 20 * IN_MILLISECONDS);
                 break;
             case EVENT_TOUCH:
-                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true, OtherEssenceSpellId))
+                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true, true, OtherEssenceSpellId))
                     me->CastCustomSpell(TouchSpellId, SPELLVALUE_MAX_TARGETS, 1, target, false);
                 events.ScheduleEvent(EVENT_TOUCH, urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS));
                 break;
@@ -402,12 +402,12 @@ class boss_fjola : public CreatureScript
                     boss_twin_baseAI::ExecuteEvent(eventId);
             }
 
-            void EnterCombat(Unit* who) override
+            void JustEngagedWith(Unit* who) override
             {
                 instance->DoStartCriteriaTimer(CRITERIA_TIMED_TYPE_EVENT,  EVENT_START_TWINS_FIGHT);
                 events.ScheduleEvent(EVENT_SPECIAL_ABILITY, 45 * IN_MILLISECONDS);
                 me->SummonCreature(NPC_BULLET_CONTROLLER, ToCCommonLoc[1].GetPositionX(), ToCCommonLoc[1].GetPositionY(), ToCCommonLoc[1].GetPositionZ(), 0.0f, TEMPSUMMON_MANUAL_DESPAWN);
-                boss_twin_baseAI::EnterCombat(who);
+                boss_twin_baseAI::JustEngagedWith(who);
             }
 
             void EnterEvadeMode(EvadeReason why) override

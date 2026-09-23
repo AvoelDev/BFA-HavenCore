@@ -219,7 +219,7 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*unit*/) override
+        void JustEngagedWith(Unit* /*unit*/) override
         {
             me->AddAura(SPELL_KICK_SHELL_A, me);
             me->AddAura(SPELL_ROCKFALL_AURA, me);
@@ -241,7 +241,7 @@ public:
                 instance->SetData(DATA_TORTOS, IN_PROGRESS);
             }
 
-            _EnterCombat();
+            _JustEngagedWith();
 
             if (me->GetMap()->IsHeroic())
                 SpawnCrystals();
@@ -270,7 +270,7 @@ public:
 
             me->RemoveAllAuras();
             Reset();
-            me->DeleteThreatList();
+            me->GetThreatManager().ClearAllThreat();
             me->CombatStop(true);
             me->GetMotionMaster()->MovementExpired();
             me->GetMotionMaster()->MoveTargetedHome();
@@ -316,7 +316,7 @@ public:
                 }
                 else
                 {
-                    ThreatContainer::StorageType threatList = me->getThreatManager().getThreatList();
+                    ThreatContainer::StorageType threatList = me->GetThreatManager().getThreatList();
 
                     for (ThreatContainer::StorageType::const_iterator itr = threatList.cbegin(); itr != threatList.cend(); ++itr)
                     {
@@ -495,7 +495,7 @@ public:
             //me->SetSpeed(MOVE_RUN, 3.0f, true);
         }
 
-        void EnterCombat(Unit*)
+        void JustEngagedWith(Unit*)
         {
             events.ScheduleEvent(EVENT_DAMAGE_PLAYERS_SPIN, 500);
             events.ScheduleEvent(EVENT_MOVE, 3000, 0, 0);
@@ -506,7 +506,7 @@ public:
             if (Creature* pTortos = me->FindNearestCreature(BOSS_TORTOS, 50.0f, true))
             {
                 std::list<Unit*>targetList;
-                std::list<HostileReference*> threatList = pTortos->getThreatManager().getThreatList();
+                std::list<HostileReference*> threatList = pTortos->GetThreatManager().getThreatList();
                 uint32 max_size = (pTortos->GetMap()->Is25ManRaid() ? 8 : 3);
 
                 if (threatList.size() > max_size)
@@ -516,7 +516,7 @@ public:
                     {
                         if (Unit* target = (*itr)->getTarget())
                         {
-                            if (target && target->ToPlayer() && target->GetExactDist2d(me) > 20.f && !target->HasAura(SPELL_SPINNING_SHELL_DUMMY))//(&DefaultTargetSelector(target, -20.f, true, -SPELL_SPINNING_SHELL_DUMMY)))
+                            if (target && target->ToPlayer() && target->GetExactDist2d(me) > 20.f && !target->HasAura(SPELL_SPINNING_SHELL_DUMMY))//(&DefaultTargetSelector(target, -20.f, true, true, -SPELL_SPINNING_SHELL_DUMMY)))
                                 targetList.push_back(target);
                         }
                     }
@@ -628,7 +628,7 @@ public:
             case EVENT_MOVE:
             {
                 std::list<Unit*> targets;
-                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 500.0f, true);
+                SelectTargetList(targets, 5, SELECT_TARGET_RANDOM, 0, 500.0f, true);
                 if (!targets.empty())
                     if (targets.size() >= 1)
                         targets.resize(1);

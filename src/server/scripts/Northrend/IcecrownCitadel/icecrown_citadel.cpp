@@ -776,9 +776,9 @@ class boss_sister_svalna : public CreatureScript
                 }
             }
 
-            void EnterCombat(Unit* /*attacker*/) override
+            void JustEngagedWith(Unit* /*attacker*/) override
             {
-                _EnterCombat();
+                _JustEngagedWith();
                 if (Creature* crok = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_CROK_SCOURGEBANE)))
                     crok->AI()->Talk(SAY_CROK_COMBAT_SVALNA);
                 events.ScheduleEvent(EVENT_SVALNA_COMBAT, 9000);
@@ -914,7 +914,7 @@ class boss_sister_svalna : public CreatureScript
                             Talk(SAY_SVALNA_AGGRO);
                             break;
                         case EVENT_IMPALING_SPEAR:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true, -SPELL_IMPALING_SPEAR))
+                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true, true, -SPELL_IMPALING_SPEAR))
                             {
                                 DoCast(me, SPELL_AETHER_SHIELD);
                                 DoCast(target, SPELL_IMPALING_SPEAR);
@@ -1279,7 +1279,7 @@ struct npc_argent_captainAI : public ScriptedAI
             }
         }
 
-        void EnterCombat(Unit* /*target*/) override
+        void JustEngagedWith(Unit* /*target*/) override
         {
             me->SetHomePosition(*me);
             if (IsUndead)

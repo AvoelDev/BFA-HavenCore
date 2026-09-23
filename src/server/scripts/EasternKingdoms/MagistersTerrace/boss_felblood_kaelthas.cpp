@@ -177,7 +177,7 @@ public:
                 RemoveGravityLapse(); // Remove Gravity Lapse so that players fall to ground if they kill him when in air.
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             instance->SetBossState(DATA_KAELTHAS, IN_PROGRESS);
         }
@@ -198,15 +198,15 @@ public:
             if (!summonedUnit)
                 return;
 
-            ThreatContainer::StorageType const &threatlist = me->getThreatManager().getThreatList();
+            ThreatContainer::StorageType const& threatlist = me->GetThreatManager().getThreatList();
             ThreatContainer::StorageType::const_iterator i = threatlist.begin();
             for (i = threatlist.begin(); i != threatlist.end(); ++i)
             {
                 Unit* unit = ObjectAccessor::GetUnit(*me, (*i)->getUnitGuid());
                 if (unit && unit->IsAlive())
                 {
-                    float threat = me->getThreatManager().getThreat(unit);
-                    summonedUnit->AddThreat(unit, threat);
+                    float threat = me->GetThreatManager().getThreat(unit);
+                    AddThreat(unit, threat, summonedUnit);
                 }
             }
         }
@@ -216,7 +216,7 @@ public:
             float x = KaelLocations[0][0];
             float y = KaelLocations[0][1];
             me->SetPosition(x, y, LOCATION_Z, 0.0f);
-            ThreatContainer::StorageType threatlist = me->getThreatManager().getThreatList();
+            ThreatContainer::StorageType threatlist = me->GetThreatManager().getThreatList();
             ThreatContainer::StorageType::const_iterator i = threatlist.begin();
             for (i = threatlist.begin(); i != threatlist.end(); ++i)
             {
@@ -229,7 +229,7 @@ public:
 
         void CastGravityLapseKnockUp()
         {
-            ThreatContainer::StorageType threatlist = me->getThreatManager().getThreatList();
+            ThreatContainer::StorageType threatlist = me->GetThreatManager().getThreatList();
             ThreatContainer::StorageType::const_iterator i = threatlist.begin();
             for (i = threatlist.begin(); i != threatlist.end(); ++i)
             {
@@ -242,7 +242,7 @@ public:
 
         void CastGravityLapseFly()                              // Use Fly Packet hack for now as players can't cast "fly" spells unless in map 530. Has to be done a while after they get knocked into the air...
         {
-            ThreatContainer::StorageType threatlist = me->getThreatManager().getThreatList();
+            ThreatContainer::StorageType threatlist = me->GetThreatManager().getThreatList();
             ThreatContainer::StorageType::const_iterator i = threatlist.begin();
             for (i = threatlist.begin(); i != threatlist.end(); ++i)
             {
@@ -258,7 +258,7 @@ public:
 
         void RemoveGravityLapse()
         {
-            ThreatContainer::StorageType threatlist = me->getThreatManager().getThreatList();
+            ThreatContainer::StorageType threatlist = me->GetThreatManager().getThreatList();
             ThreatContainer::StorageType::const_iterator i = threatlist.begin();
             for (i = threatlist.begin(); i != threatlist.end(); ++i)
             {
@@ -398,7 +398,7 @@ public:
                                     if (Orb && target)
                                     {
                                         Orb->SetSpeedRate(MOVE_RUN, 0.5f);
-                                        Orb->AddThreat(target, 1000000.0f);
+                                        AddThreat(target, 1000000.0f, Orb);
                                         Orb->AI()->AttackStart(target);
                                     }
                                 }
@@ -457,7 +457,7 @@ public:
             DoCast(me, SPELL_FLAMESTRIKE2, true);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
@@ -511,7 +511,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void DamageTaken(Unit* /*killer*/, uint32 &damage) override
         {
@@ -619,7 +619,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
 
@@ -662,7 +662,7 @@ public:
             DoCast(me, SPELL_ARCANE_SPHERE_PASSIVE, true);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void UpdateAI(uint32 diff) override
         {
@@ -679,7 +679,7 @@ public:
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
                 {
-                    me->AddThreat(target, 1.0f);
+                    AddThreat(target, 1.0f);
                     me->TauntApply(target);
                     AttackStart(target);
                 }

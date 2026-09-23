@@ -156,7 +156,7 @@ struct npc_baldrazar : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -331,7 +331,7 @@ struct npc_dreadbringer_valus : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -515,7 +515,7 @@ struct npc_vogrethar_the_defiled : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -688,7 +688,7 @@ struct npc_flamebringer_azrothel : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -865,7 +865,7 @@ struct npc_gorgoloth : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -1023,7 +1023,7 @@ struct npc_flameweaver_verathix : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -1193,7 +1193,7 @@ struct npc_velthrak_the_punisher : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -1388,7 +1388,7 @@ struct npc_mazgoroth : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -1510,7 +1510,7 @@ struct npc_mazgoroth : ScriptedAI
             {
             case EVENT_1:
             {
-                auto threatlist = me->getThreatManager().getThreatList();
+                auto threatlist = me->GetThreatManager().getThreatList();
 
                 for (uint8 i = 0; i < 3; ++i)
                 {
@@ -1529,7 +1529,7 @@ struct npc_mazgoroth : ScriptedAI
             case EVENT_2:
                 DoCast(248509);
                 if (auto victim = me->GetVictim())
-                    me->AddThreat(victim, 0.0f);
+                    me->GetThreatManager().AddThreat(victim, 0.0f);
                 events.ScheduleEvent(EVENT_2, 32000);
                 break;
             }
@@ -1563,7 +1563,7 @@ struct npc_malphazel_argus : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -1694,7 +1694,7 @@ struct npc_malphazel_argus : ScriptedAI
         {
         case 249245:
             if (auto victim = me->GetVictim())
-                me->AddThreat(victim, 0.0f);
+                me->GetThreatManager().AddThreat(victim, 0.0f);
             break;
         }
     }
@@ -1762,7 +1762,7 @@ struct npc_fel_lord_kazral : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -1934,7 +1934,7 @@ struct npc_harbinger_drelnathar : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -2096,7 +2096,7 @@ struct npc_flamecaller_vezrah : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -2254,7 +2254,7 @@ struct npc_dread_knight_zakgal : ScriptedAI
         ScriptedAI::EnterEvadeMode();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -2442,7 +2442,7 @@ struct npc_fragment_of_argus : ScriptedAI
 
     bool checkPlayers()
     {
-        std::list<HostileReference*> threatList = me->getThreatManager().getThreatList();
+        std::list<HostileReference*> threatList = me->GetThreatManager().getThreatList();
         if (threatList.size() >= 1)
             return true;
 
@@ -2804,7 +2804,7 @@ struct npc_felflame_invader : ScriptedAI
                 me->CastSpell(c, 252327, false);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         Talk(0);
         events.ScheduleEvent(EVENT_1, 2000);
@@ -2888,7 +2888,7 @@ struct npc_felflame_subjugator : ScriptedAI
             DoCast(252628);
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         Talk(0);
         events.ScheduleEvent(EVENT_1, 2000);
@@ -2941,7 +2941,7 @@ struct npc_crazed_corruptor : ScriptedAI
         //me->RemoveAllAreaObjects();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetZoneId() == 9126)
             DoCast(251896);
@@ -3034,7 +3034,7 @@ struct npc_magma_giant : ScriptedAI
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         events.ScheduleEvent(EVENT_1, 18000);
         events.ScheduleEvent(EVENT_2, 3000);

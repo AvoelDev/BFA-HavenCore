@@ -226,9 +226,9 @@ public:
             _triggersCount = 0;
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
             StartNormalSpeed();
             events.SetPhase(EVENT_PHASE_NORMAL_SLOW_FAST);
@@ -441,7 +441,7 @@ public:
                 switch (eventId)
                 {
                 case EVENT_CHRONOMATE:
-                    if (auto target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 0, true))
+                    if (auto target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 0, true))
                         DoCast(target, SPELL_CHRONOMATE);
                     else if (auto target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true))
                         DoCast(target, SPELL_CHRONOMATE);
@@ -513,7 +513,7 @@ public:
                 switch (eventId)
                 {
                 case EVENT_CHRONOMATE:
-                    if (auto target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 0, true))
+                    if (auto target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 0, true))
                         DoCast(target, SPELL_CHRONOMATE);
                     else if (auto target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true))
                         DoCast(target, SPELL_CHRONOMATE);

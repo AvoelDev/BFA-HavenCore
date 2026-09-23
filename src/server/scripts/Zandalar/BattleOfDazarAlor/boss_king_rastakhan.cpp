@@ -225,9 +225,9 @@ private:
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
-        _EnterCombat();
+        _JustEngagedWith();
         this->phase = 1;
         if (IsHeroic() || IsMythic())
             events.ScheduleEvent(SPELL_GREATER_SERPENT_TOTEM_SUMMON, 5s);
@@ -242,7 +242,7 @@ private:
         case SPELL_PLAGUE_OF_FIRE_CAST:
         {
             UnitList tarlist;
-            SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 100.0f, true);
+            SelectTargetList(tarlist, 3, SELECT_TARGET_RANDOM, 0, 100.0f, true);
             for (Unit* targets : tarlist)
             {
                 me->CastSpell(targets, SPELL_PLAGUE_OF_FIRE_AURA, true);
@@ -258,7 +258,7 @@ private:
         {
         case SPELL_SCORCHING_DETONATION_DUMMY_DAMAGE_AURA:
             Talk(1);
-            if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.f, true))      
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.f, true))      
             {
                 me->CastSpell(target, SPELL_SCORCHING_DETONATION_DUMMY_DAMAGE_AURA, false);
                 target->GetScheduler().Schedule(5100ms, [this, target](TaskContext /*context*/)
@@ -413,7 +413,7 @@ private:
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         switch (me->GetEntry())
         {
@@ -453,7 +453,7 @@ private:
         switch (spellInfo->Id)
         {
         case SPELL_METEOR_LEAP:
-            if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.f, true))
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.f, true))
                 me->CastSpell(target, SPELL_CRUSHING_LEAP_JUMP, true);
             break;
         }
@@ -464,7 +464,7 @@ private:
         switch (eventId)
         {
         case SPELL_METEOR_LEAP:
-            if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 100.f, true))
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXDISTANCE, 0, 100.f, true))
                 me->CastSpell(target, SPELL_METEOR_LEAP, false);
             events.Repeat(25s);
             break;
@@ -714,7 +714,7 @@ private:
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
         events.ScheduleEvent(SPELL_AURA_OF_DEATH_MAIN, 100s);
@@ -731,7 +731,7 @@ private:
         case SPELL_CARESS_OF_DEATH:
             if (roll_chance_f(15))
                 Talk(2);
-            if (Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO, 0, 100.0f, true))
+            if (Unit* target = SelectTarget(SELECT_TARGET_MAXTHREAT, 0, 100.0f, true))
                 me->CastSpell(target, SPELL_CARESS_OF_DEATH, false);
             events.Repeat(20s);
             break;
@@ -777,7 +777,7 @@ struct npc_phantom_generic : public ScriptedAI
         ScriptedAI::Reset();
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         switch (me->GetEntry())
         {
@@ -851,7 +851,7 @@ struct npc_king_rastakhan_static_generic : public ScriptedAI
         }
     }
 
-    void EnterCombat(Unit* /*who*/) override
+    void JustEngagedWith(Unit* /*who*/) override
     {
         switch (me->GetEntry())
         {

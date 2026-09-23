@@ -401,13 +401,11 @@ public:
                 Unit* Dragonmaw = me->FindNearestCreature(NPC_DRAGONMAW_SUBJUGATOR, 50);
                 if (Dragonmaw)
                 {
-                    me->AddThreat(Dragonmaw, 100000.0f);
+                    AddThreat(Dragonmaw, 100000.0f);
                     AttackStart(Dragonmaw);
                 }
 
-                HostileReference* ref = me->getThreatManager().getOnlineContainer().getReferenceByTarget(caster);
-                if (ref)
-                    ref->removeReference();
+                me->GetThreatManager().ClearThreat(caster);
             }
         }
 
@@ -710,7 +708,7 @@ public:
             DoSummon(NPC_COILSKAR_ASSASSIN, me, 15.0f, 5000, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT);
         }
 
-        void EnterCombat(Unit* who) override
+        void JustEngagedWith(Unit* who) override
         {
             //don't always use
             if (rand32() % 5)
@@ -885,7 +883,7 @@ public:
             me->SetTarget(ObjectGuid::Empty);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void HandleAnimation()
         {
@@ -913,7 +911,7 @@ public:
                 if (Player* AggroTarget = ObjectAccessor::GetPlayer(*me, AggroTargetGUID))
                 {
                     me->SetTarget(AggroTarget->GetGUID());
-                    me->AddThreat(AggroTarget, 1);
+                    AddThreat(AggroTarget, 1);
                     me->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
                 }
                 break;
@@ -1054,7 +1052,7 @@ public:
             me->SetVisible(false);
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
         void AttackStart(Unit* /*who*/) override { }
@@ -1189,7 +1187,7 @@ public:
             Initialize();
         }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void JustDied(Unit* /*killer*/) override
         {
@@ -1433,7 +1431,7 @@ public:
 
         void Reset() override { }
 
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
 
         void JustDied(Unit* /*killer*/) override
         {

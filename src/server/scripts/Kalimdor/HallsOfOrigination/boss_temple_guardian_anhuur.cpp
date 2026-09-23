@@ -143,13 +143,13 @@ class boss_anhuur : public CreatureScript
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me, 1);
             Talk(SAY_AGGRO);
             events.ScheduleEvent(EVENT_DIVINE_RECKONING, urand(10000, 12000));
             events.ScheduleEvent(EVENT_BURNING_LIGHT, 12000);
-            _EnterCombat();
+            _JustEngagedWith();
         }
 
         void JustDied(Unit* /*killer*/) override
@@ -338,7 +338,7 @@ class boss_anhuur : public CreatureScript
                 switch (eventId)
                 {
                 case EVENT_DIVINE_RECKONING:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true, 0))
+                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true, true, 0))
                         DoCast(target, SPELL_DIVINE_RECKONING);
                     events.ScheduleEvent(EVENT_DIVINE_RECKONING, urand(10000, 12000));
                     break;
