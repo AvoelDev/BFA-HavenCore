@@ -378,16 +378,11 @@ void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets:
     WorldPackets::ClubFinder::ClubFinderGetClubPostingIDsResponse response;
     response.Entries.reserve(request.ClubIDs.size());
 
-    TC_LOG_INFO("guild", "[CF-SUBMAP] C->S REQUEST_SUBSCRIBED_CLUB_POSTING_IDS [%s] clubs=%u",
-        GetPlayerInfo().c_str(), uint32(request.ClubIDs.size()));
-
     for (uint64 clubId : request.ClubIDs)
     {
         Guild* guild = sGuildMgr->GetGuildById(ObjectGuid::LowType(clubId));
         if (!guild || guild->GetMembersCount() == 0)
         {
-            TC_LOG_INFO("guild", "[CF-SUBMAP] [%s] clubId=" UI64FMTD " -> no guild/empty guild",
-                GetPlayerInfo().c_str(), clubId);
             continue;
         }
 
@@ -395,23 +390,18 @@ void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets:
         // guild back to an own/subscribed posting for a non-member.
         if (player->GetGuildId() != guild->GetId())
         {
-            TC_LOG_INFO("guild", "[CF-SUBMAP] [%s] clubId=" UI64FMTD " -> no longer a member", GetPlayerInfo().c_str(), clubId);
             continue;
         }
 
         LFGuildSettings const& guildSettings = sClubFinderMgr->GetGuildSettings(guild->GetGUID());
         if (!guildSettings.IsListed())
         {
-            TC_LOG_INFO("guild", "[CF-SUBMAP] [%s] clubId=" UI64FMTD " -> not listed",
-                GetPlayerInfo().c_str(), clubId);
             continue;
         }
 
         uint32 postingId = GetGuildPostingID(guild);
         if (!postingId)
         {
-            TC_LOG_INFO("guild", "[CF-SUBMAP] [%s] clubId=" UI64FMTD " -> no postingId",
-                GetPlayerInfo().c_str(), clubId);
             continue;
         }
 
@@ -420,8 +410,6 @@ void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets:
         entry.PostingID = postingId;
         response.Entries.push_back(entry);
 
-        TC_LOG_INFO("guild", "[CF-SUBMAP] [%s] clubId=" UI64FMTD " -> postingId=%u",
-            GetPlayerInfo().c_str(), clubId, postingId);
     }
 
     WorldPacket const* mappingData = response.Write();
