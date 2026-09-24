@@ -2437,49 +2437,6 @@ class spell_q10929_fumping : SpellScriptLoader
     }
 };
 
-enum FearNoEvil
-{
-    SPELL_RENEWED_LIFE = 93097,
-    NPC_INJURED_STORMWIND_INFANTRY = 50047
-};
-
-// 93072 - Get Our Boys Back Dummy
-class spell_q28813_get_our_boys_back_dummy : public SpellScriptLoader
-{
-public:
-    spell_q28813_get_our_boys_back_dummy() : SpellScriptLoader("spell_q28813_get_our_boys_back_dummy") { }
-
-    class spell_q28813_get_our_boys_back_dummy_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_q28813_get_our_boys_back_dummy_SpellScript);
-
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ SPELL_RENEWED_LIFE });
-        }
-
-        void HandleDummyEffect()
-        {
-            Unit* caster = GetCaster();
-
-            if (Creature* injuredStormwindInfantry = caster->FindNearestCreature(NPC_INJURED_STORMWIND_INFANTRY, 5.0f, true))
-            {
-                injuredStormwindInfantry->CastSpell(injuredStormwindInfantry, SPELL_RENEWED_LIFE, true);
-            }
-        }
-
-        void Register() override
-        {
-            OnCast += SpellCastFn(spell_q28813_get_our_boys_back_dummy_SpellScript::HandleDummyEffect);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_q28813_get_our_boys_back_dummy_SpellScript();
-    }
-};
-
 class spell_q28813_set_health_random : public SpellScriptLoader
 {
 public:
@@ -2984,7 +2941,6 @@ void AddSC_quest_spell_scripts()
     new spell_q13400_illidan_kill_master();
     new spell_q14100_q14111_make_player_destroy_totems();
     new spell_q10929_fumping();
-    new spell_q28813_get_our_boys_back_dummy();
     new spell_q28813_set_health_random();
     new spell_q12414_hand_over_reins();
     new spell_q13665_q13790_bested_trigger();
