@@ -323,7 +323,7 @@ struct boss_kaathar : public BossAI
                         l_Prisoners->CastSpell(l_Prisoners, eAuchindounSpells::SpellStrangulate, true);
                        // l_Prisoners->UNIT_NPC_EMOTESTATEUnitFlags::UNIT_FLAG_REMOVE_CLIENT_CONTROL);
                         l_Prisoners->AddUnitFlag(UnitFlags(UnitFlags2::UNIT_FLAG2_DISABLE_TURN));
-                        l_Prisoners->AddDynamicFlag(UnitDynFlags::UNIT_DYNFLAG_DEAD);
+                        l_Prisoners->AddUnitFlag(UnitFlags(UnitFlags3::UNIT_FLAG3_FAKE_DEAD));
                     }
                 }
 
@@ -334,7 +334,7 @@ struct boss_kaathar : public BossAI
                     {
                         l_Prisoners->SetReactState(ReactStates::REACT_PASSIVE);
                         l_Prisoners->AddUnitMovementFlag(MovementFlags::MOVEMENTFLAG_ROOT);
-                        l_Prisoners->AddDynamicFlag(UnitDynFlags::UNIT_DYNFLAG_DEAD);
+                        l_Prisoners->AddUnitFlag(UnitFlags(UnitFlags3::UNIT_FLAG3_FAKE_DEAD));
                         l_Prisoners->AddUnitFlag(UnitFlags(UnitFlags::UNIT_FLAG_REMOVE_CLIENT_CONTROL));
                         l_Prisoners->AddUnitFlag(UnitFlags(UNIT_FLAG2_DISABLE_TURN | UnitFlags2::UNIT_FLAG2_FEIGN_DEATH));
                     }
@@ -821,7 +821,7 @@ struct auchindoun_kaathar_mob_holy_shield : public ScriptedAI
         me->CastSpell(me, eKaatharSpells::SpellHolyShieldLos);
         me->AddUnitMovementFlag(MovementFlags::MOVEMENTFLAG_ROOT);
         me->AddUnitFlag(UnitFlags(UnitFlags2::UNIT_FLAG2_DISABLE_TURN));
-        me->AddDynamicFlag(UnitDynFlags::UNIT_DYNFLAG_DEAD);
+        me->AddUnitFlag3(UnitFlags3(UnitFlags3::UNIT_FLAG3_FAKE_DEAD));
         me->AddUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UnitFlags::UNIT_FLAG_NOT_SELECTABLE | UnitFlags::UNIT_FLAG_REMOVE_CLIENT_CONTROL));
         /// Knockback
         std::list<Player*> l_ListPlayers;

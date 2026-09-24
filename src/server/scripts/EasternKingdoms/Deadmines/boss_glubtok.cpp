@@ -155,7 +155,7 @@ public:
             me->SetCanFly(false);
 
             me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC));
-            me->RemoveDynamicFlag(UNIT_DYNFLAG_DEAD);
+            me->RemoveUnitFlag3(UNIT_FLAG3_FAKE_DEAD);
             me->RemoveUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
             me->ClearUnitState(UNIT_STATE_CANNOT_TURN);
 

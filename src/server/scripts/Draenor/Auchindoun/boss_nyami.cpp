@@ -304,8 +304,8 @@ struct boss_nyami : public BossAI
                     l_Warden->SetReactState(ReactStates::REACT_PASSIVE);
                     l_Warden->AddUnitMovementFlag(MovementFlags::MOVEMENTFLAG_ROOT);
                     l_Warden->AddUnitFlag(UnitFlags(UnitFlags::UNIT_FLAG_REMOVE_CLIENT_CONTROL));
-                    l_Warden->AddDynamicFlag(UNIT_DYNFLAG_DEAD);
-                    l_Warden->AddUnitFlag(UnitFlags(UnitFlags2::UNIT_FLAG2_DISABLE_TURN | UnitFlags2::UNIT_FLAG2_FEIGN_DEATH));
+                    l_Warden->AddUnitFlag3(UnitFlags3(UnitFlags3::UNIT_FLAG3_FAKE_DEAD));
+                    l_Warden->AddUnitFlag2(UnitFlags2(UnitFlags2::UNIT_FLAG2_DISABLE_TURN | UnitFlags2::UNIT_FLAG2_FEIGN_DEATH));
                     l_Warden->SummonCreature(eAuchindounCreatures::CreatureFelborneAbyssal, l_Warden->GetPositionX(), l_Warden->GetPositionY(), l_Warden->GetPositionZ(), TempSummonType::TEMPSUMMON_MANUAL_DESPAWN);
 
                     if (l_Warden->IsAIEnabled)

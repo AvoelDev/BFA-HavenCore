@@ -371,7 +371,7 @@ public:
                 {
                     me->SetStandState(UNIT_STAND_STATE_DEAD);
                     me->AddUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-                    me->AddDynamicFlag(UNIT_DYNFLAG_DEAD);
+                    me->AddUnitFlag3(UNIT_FLAG3_FAKE_DEAD);
                 }
                 _phase = 0;
             }

@@ -801,7 +801,7 @@ public:
                     me->RemoveAurasDueToSpell(SPELL_JAWS_OF_DEATH_PERIODIC);
                     me->RemoveAurasDueToSpell(SPELL_PRY_JAWS_OPEN);
 
-                    me->SetDynamicFlags(UNIT_DYNFLAG_DEAD);
+                    me->SetUnitFlags3(UnitFlags3(UNIT_FLAG3_FAKE_DEAD));
                     me->SetUnitFlags((UnitFlags)0);
 
                     me->GetMotionMaster()->MoveFall(POINT_FALL);

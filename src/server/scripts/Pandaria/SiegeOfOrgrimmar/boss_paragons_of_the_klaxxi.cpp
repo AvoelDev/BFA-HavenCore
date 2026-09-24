@@ -1196,7 +1196,7 @@ private:
         // Do it manually
         me->SetUnitFlags(UnitFlags(UNIT_FLAG_UNK_29));                                                // blizz like 2.0.x
         me->SetUnitFlags2(UnitFlags2(UNIT_FLAG2_FEIGN_DEATH));                                              // blizz like 2.0.x
-        me->SetDynamicFlags(UNIT_DYNFLAG_DEAD);
+        me->SetUnitFlags3(UnitFlags3(UNIT_FLAG3_FAKE_DEAD));
         me->AddUnitState(UNIT_STATE_DIED);
 
         me->SetUnitFlags(UnitFlags(UNIT_NPC_FLAG_SPELLCLICK));

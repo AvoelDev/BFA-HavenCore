@@ -1193,7 +1193,7 @@ class spell_gen_creature_permanent_feign_death : public SpellScriptLoader
             void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 Unit* target = GetTarget();
-                target->SetDynamicFlags(UNIT_DYNFLAG_DEAD);
+                target->AddUnitFlag3(UNIT_FLAG3_FAKE_DEAD);
                 target->AddUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
 
                 if (target->GetTypeId() == TYPEID_UNIT)
@@ -1203,7 +1203,7 @@ class spell_gen_creature_permanent_feign_death : public SpellScriptLoader
             void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 Unit* target = GetTarget();
-                target->RemoveDynamicFlag(UNIT_DYNFLAG_DEAD);
+                target->RemoveUnitFlag3(UNIT_FLAG3_FAKE_DEAD);
                 target->RemoveUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
             }
 

@@ -563,7 +563,7 @@ struct BloodPrincesBossAI : public BossAI
             case ACTION_STAND_UP:
                 me->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
                 me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC));
-                me->RemoveDynamicFlag(UNIT_DYNFLAG_DEAD);
+                me->RemoveUnitFlag3(UNIT_FLAG3_FAKE_DEAD);
                 me->RemoveUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
                 me->m_Events.AddEvent(new StandUpEvent(me), me->m_Events.CalculateTime(1000));
                 break;

@@ -504,7 +504,7 @@ public:
 
             me->AddUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
             me->AddUnitMovementFlag(MovementFlags::MOVEMENTFLAG_ROOT);
-            me->AddDynamicFlag(UnitDynFlags::UNIT_DYNFLAG_DEAD);
+            me->AddUnitFlag3(UnitFlags3(UNIT_FLAG3_FAKE_DEAD));
             me->AddUnitFlag(UNIT_FLAG_REMOVE_CLIENT_CONTROL);
             me->AddUnitFlag2(UNIT_FLAG2_DISABLE_TURN);
             me->AddNpcFlag(NPCFlags::UNIT_NPC_FLAG_GOSSIP);

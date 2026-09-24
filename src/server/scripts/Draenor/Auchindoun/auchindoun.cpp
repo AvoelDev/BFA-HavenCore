@@ -808,8 +808,8 @@ struct auchindoun_mob_sargerei_magus : public ScriptedAI
                     if (Creature* l_Mob = ObjectAccessor::GetCreature(*me, l_Itr))
                     {
                         l_Mob->AddUnitMovementFlag(MovementFlags::MOVEMENTFLAG_ROOT);
-                        l_Mob->AddUnitFlag(UnitFlags(UNIT_FLAG2_FEIGN_DEATH));
-                        l_Mob->AddUnitFlag(UnitFlags(UNIT_DYNFLAG_DEAD));
+                        l_Mob->AddUnitFlag2((UNIT_FLAG2_FEIGN_DEATH));
+                        l_Mob->AddUnitFlag3((UNIT_FLAG3_FAKE_DEAD));
                     }
                 }
             }

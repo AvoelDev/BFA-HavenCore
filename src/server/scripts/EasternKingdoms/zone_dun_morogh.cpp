@@ -1140,7 +1140,7 @@ private:
             return false;
         if (candidate->GetStandState() != UNIT_STAND_STATE_STAND)
             return false;
-        if (candidate->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH) || candidate->HasDynamicFlag(UNIT_DYNFLAG_DEAD))
+        if (candidate->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH) || candidate->HasUnitFlag3(UNIT_FLAG3_FAKE_DEAD))
             return false;
         if (candidate->HasUnitFlag(UNIT_FLAG_NOT_SELECTABLE) || candidate->HasUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC))
             return false;

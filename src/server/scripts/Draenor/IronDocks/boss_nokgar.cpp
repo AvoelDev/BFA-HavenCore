@@ -413,7 +413,7 @@ class iron_docks_nokgar_mob_dreadfang : public CreatureScript
                 me->SetReactState(ReactStates::REACT_AGGRESSIVE);
                 m_ShreddingStrikeTimer = 1 * TimeConstants::IN_MILLISECONDS;
                 me->RemoveUnitMovementFlag(MovementFlags::MOVEMENTFLAG_ROOT);
-                me->RemoveDynamicFlag(UnitDynFlags::UNIT_DYNFLAG_DEAD);
+                me->RemoveUnitFlag3(UnitFlags3(UNIT_FLAG3_FAKE_DEAD));
                 me->RemoveUnitFlag(UnitFlags(UNIT_FLAG2_DISABLE_TURN | UNIT_FLAG2_FEIGN_DEATH));
                 me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_REMOVE_CLIENT_CONTROL | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_IMMUNE_TO_PC));
                 std::list<Creature*> l_ListFlameSlingers;
@@ -482,7 +482,7 @@ class iron_docks_nokgar_mob_dreadfang : public CreatureScript
                             me->CastSpell(me, eSpells::SpellCosmeticFeignDeath);
                             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC);
                             me->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH | UNIT_FLAG2_DISABLE_TURN);
-                            me->SetFlag(EObjectFields::OBJECT_DYNAMIC_FLAGS, UnitDynFlags::UNIT_DYNFLAG_DEAD);
+                            me->SetFlag(EObjectFields::OBJECT_DYNAMIC_FLAGS, UnitDynFlags::UNIT_FLAG3_FAKE_DEAD);
                             me->AddUnitMovementFlag(MovementFlags::MOVEMENTFLAG_ROOT);
                             me->GetVehicleKit()->RemoveAllPassengers();
 
