@@ -121,7 +121,7 @@ bool CombatAI::UpdateVictim()
 {
     if (!me->HasReactState(REACT_PASSIVE))
     {
-        if (Unit* victim = me->SelectVictim(false))
+        if (Unit* victim = me->SelectVictim())
         {
             if (!me->IsFocusing(nullptr, true))
                 AttackStart(victim);
@@ -312,11 +312,11 @@ TurretAI::TurretAI(Creature* c) : CreatureAI(c)
     me->m_SightDistance = me->m_CombatDistance;
 }
 
-bool TurretAI::CanAIAttack(const Unit* /*who*/) const
+bool TurretAI::CanAIAttack(Unit const* who) const
 {
     /// @todo use one function to replace it
-    if (!me->IsWithinCombatRange(me->GetVictim(), me->m_CombatDistance)
-        || (m_minRange && me->IsWithinCombatRange(me->GetVictim(), m_minRange)))
+    if (!me->IsWithinCombatRange(who, me->m_CombatDistance)
+        || (m_minRange && me->IsWithinCombatRange(who, m_minRange)))
         return false;
     return true;
 }
