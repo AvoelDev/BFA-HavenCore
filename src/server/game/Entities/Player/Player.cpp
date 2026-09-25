@@ -28333,9 +28333,13 @@ bool Player::CanSeeSpellClickOn(Creature const* c) const
     if (!c->HasNpcFlag(UNIT_NPC_FLAG_SPELLCLICK))
         return false;
 
+    // Vehicle::Install sets the flag on any vehicle with an enterable seat.
+    // Without a npc_spellclick_spells row a click does nothing, and retail
+    // sends such vehicles without the flag, so the client must not show the
+    // spell-click cursor on them.
     SpellClickInfoMapBounds clickPair = sObjectMgr->GetSpellClickInfoMapBounds(c->GetEntry());
     if (clickPair.first == clickPair.second)
-        return true;
+        return false;
 
     for (SpellClickInfoContainer::const_iterator itr = clickPair.first; itr != clickPair.second; ++itr)
     {
