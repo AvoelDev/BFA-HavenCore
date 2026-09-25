@@ -186,9 +186,32 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 -- Northshire (zone 6170) and left untouched elsewhere.
 -- ============================================================================
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND ((`SourceGroup` = 721 AND `SourceEntry` = 0) OR (`SourceGroup` = 1 AND `SourceEntry` = 721));
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
-(22, 1, 721, 0, 0, 4, 1, 6170, 0, 0, 1, 0, 0, '', 'Rabbit - never cast Terrified in Northshire');
+DELETE FROM `conditions`
+WHERE `SourceTypeOrReferenceId` = 22
+  AND `SourceGroup` = 1
+  AND `SourceEntry` = 721;
+
+INSERT INTO `conditions`
+(
+    `SourceTypeOrReferenceId`,
+    `SourceGroup`,
+    `SourceEntry`,
+    `SourceId`,
+    `ElseGroup`,
+    `ConditionTypeOrReference`,
+    `ConditionTarget`,
+    `ConditionValue1`,
+    `ConditionValue2`,
+    `ConditionValue3`,
+    `NegativeCondition`,
+    `ErrorType`,
+    `ErrorTextId`,
+    `ScriptName`,
+    `Comment`
+)
+VALUES
+(22, 1, 721, 0, 0, 23, 1, 9,  0, 0, 1, 0, 0, '', 'Rabbit - do not cast Terrified in Northshire Valley'),
+(22, 1, 721, 0, 0, 23, 1, 59, 0, 0, 1, 0, 0, '', 'Rabbit - do not cast Terrified in Northshire Vineyards');
 
 -- ============================================================================
 -- Quests
