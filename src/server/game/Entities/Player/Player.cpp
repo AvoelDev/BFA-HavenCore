@@ -20632,61 +20632,71 @@ void Player::_LoadQuestStatus(PreparedQueryResult result)
             Field* fields = result->Fetch();
 
             uint32 quest_id = fields[0].GetUInt32();
-                                                            // used to be new, no delete?
             Quest const* quest = sObjectMgr->GetQuestTemplate(quest_id);
-            if (quest)
+            if (!quest)
+                continue;
+
+            QuestStatusData questStatusData;
+
+            uint8 qstatus = fields[1].GetUInt8();
+            if (qstatus < MAX_QUEST_STATUS)
+                questStatusData.Status = QuestStatus(qstatus);
+            else
             {
-                // find or create
-                QuestStatusData& questStatusData = m_QuestStatus[quest_id];
-
-                uint8 qstatus = fields[1].GetUInt8();
-                if (qstatus < MAX_QUEST_STATUS)
-                    questStatusData.Status = QuestStatus(qstatus);
-                else
-                {
-                    questStatusData.Status = QUEST_STATUS_INCOMPLETE;
-                    TC_LOG_ERROR("entities.player", "Player::_LoadQuestStatus: Player '%s' (%s) has invalid quest %d status (%u), replaced by QUEST_STATUS_INCOMPLETE(3).",
-                        GetName().c_str(), GetGUID().ToString().c_str(), quest_id, qstatus);
-                }
-
-                time_t quest_time = time_t(fields[2].GetUInt32());
-                questStatusData.Explored = fields[3].GetBool();
-
-                if (quest->HasSpecialFlag(QUEST_SPECIAL_FLAGS_TIMED) && !GetQuestRewardStatus(quest_id))
-                {
-                    AddTimedQuest(quest_id);
-
-                    if (quest_time <= GameTime::GetGameTime())
-                        questStatusData.Timer = 1;
-                    else
-                        questStatusData.Timer = uint32((quest_time - GameTime::GetGameTime()) * IN_MILLISECONDS);
-                }
-                else
-                    quest_time = 0;
-
-                // add to quest log
-                if (slot < MAX_QUEST_LOG_SIZE && questStatusData.Status != QUEST_STATUS_NONE)
-                {
-                    SetQuestSlot(slot, quest_id, uint32(quest_time)); // cast can't be helped
-
-                    if (questStatusData.Status == QUEST_STATUS_COMPLETE)
-                        SetQuestSlotState(slot, QUEST_STATE_COMPLETE);
-                    else if (questStatusData.Status == QUEST_STATUS_FAILED)
-                        SetQuestSlotState(slot, QUEST_STATE_FAIL);
-
-                    ++slot;
-                }
-
-                // Resize quest objective data to proper size
-                int32 maxStorageIndex = 0;
-                for (QuestObjective const& obj : quest->GetObjectives())
-                    if (obj.StorageIndex > maxStorageIndex)
-                        maxStorageIndex = obj.StorageIndex;
-
-                questStatusData.ObjectiveData.resize(maxStorageIndex+1);
-
-                TC_LOG_DEBUG("entities.player.loading", "Player::_LoadQuestStatus: Quest status is {%u} for quest {%u} for player (%s)", questStatusData.Status, quest_id, GetGUID().ToString().c_str());
+                questStatusData.Status = QUEST_STATUS_INCOMPLETE;
+                TC_LOG_ERROR("entities.player", "Player::_LoadQuestStatus: Player '%s' (%s) has invalid quest %d status (%u), replaced by QUEST_STATUS_INCOMPLETE(3).",
+                    GetName().c_str(), GetGUID().ToString().c_str(), quest_id, qstatus);
             }
+
+            if (questStatusData.Status == QUEST_STATUS_NONE)
+                continue;
+
+            // Only load quests that get a log slot. A quest without a slot is invisible
+            // to the client and can never be updated or completed.
+            if (slot >= MAX_QUEST_LOG_SIZE)
+            {
+                TC_LOG_ERROR("entities.player", "Player::_LoadQuestStatus: Player '%s' (%s) quest log is full (%u slots), quest %u was not loaded.",
+                    GetName().c_str(), GetGUID().ToString().c_str(), uint32(MAX_QUEST_LOG_SIZE), quest_id);
+                continue;
+            }
+
+            time_t quest_time = time_t(fields[2].GetUInt32());
+            questStatusData.Explored = fields[3].GetBool();
+
+            if (quest->HasSpecialFlag(QUEST_SPECIAL_FLAGS_TIMED) && !GetQuestRewardStatus(quest_id))
+            {
+                AddTimedQuest(quest_id);
+
+                if (quest_time <= GameTime::GetGameTime())
+                    questStatusData.Timer = 1;
+                else
+                    questStatusData.Timer = uint32((quest_time - GameTime::GetGameTime()) * IN_MILLISECONDS);
+            }
+            else
+                quest_time = 0;
+
+            // Resize quest objective data to proper size
+            int32 maxStorageIndex = 0;
+            for (QuestObjective const& obj : quest->GetObjectives())
+                if (obj.StorageIndex > maxStorageIndex)
+                    maxStorageIndex = obj.StorageIndex;
+
+            questStatusData.ObjectiveData.resize(maxStorageIndex + 1);
+
+            QuestStatus const status = questStatusData.Status;
+            m_QuestStatus[quest_id] = std::move(questStatusData);
+
+            // add to quest log
+            SetQuestSlot(slot, quest_id, uint32(quest_time)); // cast can't be helped
+
+            if (status == QUEST_STATUS_COMPLETE)
+                SetQuestSlotState(slot, QUEST_STATE_COMPLETE);
+            else if (status == QUEST_STATUS_FAILED)
+                SetQuestSlotState(slot, QUEST_STATE_FAIL);
+
+            ++slot;
+
+            TC_LOG_DEBUG("entities.player.loading", "Player::_LoadQuestStatus: Quest status is {%u} for quest {%u} for player (%s)", status, quest_id, GetGUID().ToString().c_str());
         }
         while (result->NextRow());
     }
