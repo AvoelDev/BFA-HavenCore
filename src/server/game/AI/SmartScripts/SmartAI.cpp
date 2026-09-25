@@ -730,11 +730,14 @@ void SmartAI::InitializeAI()
 
 void SmartAI::OnCharmed(bool apply)
 {
-    if (apply) // do this before we change charmed state, as charmed state might prevent these things from processing
+    if (apply)
     {
         if (HasEscortState(SMART_ESCORT_ESCORTING | SMART_ESCORT_PAUSED | SMART_ESCORT_RETURNING))
             EndPath(true);
-        me->StopMoving();
+        // Vehicle SmartAI may have its own script-controlled motion. Ordinary
+        // charmed creatures still stop when control is handed to their owner.
+        if (!me->IsVehicle())
+            me->StopMoving();
     }
     mIsCharmed = apply;
 
@@ -750,6 +753,10 @@ void SmartAI::OnCharmed(bool apply)
     }
 
     GetScript()->ProcessEventsFor(SMART_EVENT_CHARMED, nullptr, 0, 0, apply);
+
+    // Mirror upstream's opt-in AI preservation, using HavenCore's base hook.
+    if (!GetScript()->HasAnyEventWithFlag(SMART_EVENT_FLAG_WHILE_CHARMED))
+        CreatureAI::OnCharmed(apply);
 }
 
 void SmartAI::DoAction(int32 param)

@@ -56,6 +56,21 @@ class TC_GAME_API SmartScript
         void SetPathId(uint32 id) { mPathId = id; }
         uint32 GetPathId() const { return mPathId; }
 
+        // Preserve SmartAI across charm only when a loaded event explicitly
+        // opts in. Include pending installed events as well as active events.
+        bool HasAnyEventWithFlag(uint32 flag) const
+        {
+            for (SmartScriptHolder const& event : mEvents)
+                if (event.event.event_flags & flag)
+                    return true;
+
+            for (SmartScriptHolder const& event : mInstallEvents)
+                if (event.event.event_flags & flag)
+                    return true;
+
+            return false;
+        }
+
         WorldObject* GetBaseObject() const;
         WorldObject* GetBaseObjectOrUnit(Unit* unit);
         static bool IsUnit(WorldObject* obj);
