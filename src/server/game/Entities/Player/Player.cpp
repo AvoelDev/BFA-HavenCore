@@ -15978,7 +15978,7 @@ bool Player::CanTakeQuest(Quest const* quest, bool msg)
 
 bool Player::CanAddQuest(Quest const* quest, bool msg) const
 {
-    if (!SatisfyQuestLog(msg))
+    if (!SatisfyQuestLog(msg, quest))
         return false;
 
     uint32 srcitem = quest->GetSrcItemId();
@@ -16933,11 +16933,30 @@ bool Player::SatisfyQuestLevel(Quest const* qInfo, bool msg) const
     return true;
 }
 
-bool Player::SatisfyQuestLog(bool msg) const
+uint32 Player::GetRegularQuestCount() const
 {
-    // exist free slot
-    if (FindQuestSlot(0) < MAX_QUEST_LOG_SIZE)
+    uint32 count = 0;
+    for (uint16 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
+        if (uint32 questId = GetQuestSlotQuestId(slot))
+            if (Quest const* quest = sObjectMgr->GetQuestTemplate(questId))
+                if (quest->CountsTowardQuestLogLimit())
+                    ++count;
+
+    return count;
+}
+
+bool Player::SatisfyQuestLog(bool msg, Quest const* quest /*= nullptr*/) const
+{
+    bool const hasFreeSlot = FindQuestSlot(0) < MAX_QUEST_LOG_SIZE;
+    bool const underRegularCap = !quest || !quest->CountsTowardQuestLogLimit()
+        || GetRegularQuestCount() < MAX_REGULAR_QUEST_LOG_SIZE;
+
+    if (hasFreeSlot && underRegularCap)
         return true;
+
+    if (!hasFreeSlot)
+        TC_LOG_ERROR("entities.player.quest", "Player::SatisfyQuestLog: Player '%s' (%s) has no free quest log slot (%u in use).",
+            GetName().c_str(), GetGUID().ToString().c_str(), uint32(MAX_QUEST_LOG_SIZE));
 
     if (msg)
     {

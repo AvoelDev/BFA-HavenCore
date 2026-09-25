@@ -27,6 +27,7 @@
 #include "CreatureTextMgr.h"
 #include "DB2Structure.h"
 #include "GameObject.h"
+#include "Log.h"
 #include "MotionMaster.h"
 #include "MovementTypedefs.h"
 #include "ObjectAccessor.h"
@@ -1341,6 +1342,19 @@ struct npc_voljin_darkspear_hold : public ScriptedAI
 {
     npc_voljin_darkspear_hold(Creature* creature) : ScriptedAI(creature), _inScene(false) { }
 
+    // Visions are TEMPSUMMON_MANUAL_DESPAWN: if the scene is cut short they
+    // would stay in the world forever and _inScene would block every later
+    // turn-in. Death and respawn both abort the scene cleanly.
+    void JustDied(Unit* /*killer*/) override
+    {
+        AbortScene();
+    }
+
+    void JustRespawned() override
+    {
+        AbortScene();
+    }
+
     void sQuestReward(Player* player, Quest const* quest, uint32 /*opt*/) override
     {
         if (_inScene)
@@ -1468,6 +1482,23 @@ struct npc_voljin_darkspear_hold : public ScriptedAI
     }
 
 private:
+    void AbortScene()
+    {
+        if (!_inScene && !_garroshGuid && !_visionVoljinGuid && !_thrallGuid)
+            return;
+
+        TC_LOG_DEBUG("scripts", "Echo Isles: Vol'jin %s vision scene aborted, cleaning up.",
+            me->GetGUID().ToString().c_str());
+
+        events.Reset();
+        me->RemoveAurasDueToSpell(SPELL_RITES_OF_VISION);
+        SetVisionSmoke(false);
+        DespawnVision(_garroshGuid);
+        DespawnVision(_visionVoljinGuid);
+        DespawnVision(_thrallGuid);
+        _inScene = false;
+    }
+
     void StartThrallVision(Player* player)
     {
         Talk(SAY_VOLJIN_SEA_WITCH_DEAD, player);
@@ -2086,7 +2117,7 @@ struct npc_swiftclaw_vehicle : public ScriptedAI
         {
             case SPELL_RAPTOR_ROPE:
                 // Rope hit resolves first; board next update.
-                if (caster->GetGUID() == _playerGuid && !me->GetVehicleKit()->IsVehicleInUse())
+                if (caster->GetGUID() == _playerGuid && me->GetVehicleKit() && !me->GetVehicleKit()->IsVehicleInUse())
                     events.ScheduleEvent(EVENT_SWIFTCLAW_TAKE_RIDER, 1ms);
                 break;
             case SPELL_RAPTOR_TURN_IN_CREDIT:

@@ -627,7 +627,7 @@ void WorldSession::HandlePushQuestToParty(WorldPackets::Quest::PushQuestToParty&
             continue;
         }
 
-        if (!receiver->SatisfyQuestLog(false))
+        if (!receiver->SatisfyQuestLog(false, quest))
         {
             sender->SendPushToPartyResponse(receiver, QUEST_PUSH_LOG_FULL);
             continue;

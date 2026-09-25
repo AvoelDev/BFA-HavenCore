@@ -1485,7 +1485,9 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void FailQuest(uint32 quest_id);
         bool SatisfyQuestSkill(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestLevel(Quest const* qInfo, bool msg) const;
-        bool SatisfyQuestLog(bool msg) const;
+        // quest == nullptr only checks for a free slot (legacy callers).
+        bool SatisfyQuestLog(bool msg, Quest const* quest = nullptr) const;
+        uint32 GetRegularQuestCount() const;
         bool SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg);
         bool SatisfyQuestClass(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestRace(Quest const* qInfo, bool msg) const;

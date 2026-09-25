@@ -274,8 +274,14 @@ void WorldSession::HandleQueryQuestCompletionNPCs(WorldPackets::Query::QueryQues
 
 void WorldSession::HandleQuestPOIQuery(WorldPackets::Query::QuestPOIQuery& questPoiQuery)
 {
-    if (questPoiQuery.MissingQuestCount > MAX_QUEST_LOG_SIZE)
+    // Bound by the packet array, not the log size: the client can ask about
+    // tracked world quests and bonus objectives too.
+    if (questPoiQuery.MissingQuestCount < 0 || questPoiQuery.MissingQuestCount > int32(questPoiQuery.MissingQuestPOIs.size()))
+    {
+        TC_LOG_DEBUG("network", "WorldSession::HandleQuestPOIQuery: %s sent invalid MissingQuestCount %d.",
+            GetPlayerInfo().c_str(), questPoiQuery.MissingQuestCount);
         return;
+    }
 
     // Read quest ids and add the in a unordered_set so we don't send POIs for the same quest multiple times
     std::unordered_set<int32> questIds;

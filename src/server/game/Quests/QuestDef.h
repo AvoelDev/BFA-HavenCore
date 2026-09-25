@@ -36,7 +36,12 @@ namespace WorldPackets
     }
 }
 
-#define MAX_QUEST_LOG_SIZE 25 // 8.3.7 client quest log size (TrinityCore TDB837 uses 25)
+// Quest log slots sent to the client (UF::PlayerData::QuestLog has 125 entries).
+// Regular quests, bonus objectives and world quests all occupy these slots.
+#define MAX_QUEST_LOG_SIZE 125
+// Client-side cap for regular quests. Bonus objectives, world quests and
+// tracking quests do not count toward it (see Quest::CountsTowardQuestLogLimit).
+#define MAX_REGULAR_QUEST_LOG_SIZE 25
 
 #define QUEST_ITEM_DROP_COUNT 4
 #define QUEST_REWARD_CHOICES_COUNT 6
@@ -463,6 +468,8 @@ class TC_GAME_API Quest
         bool   IsDailyOrWeekly() const { return (Flags & (QUEST_FLAGS_DAILY | QUEST_FLAGS_WEEKLY)) != 0; }
         bool   IsRaidQuest(Difficulty difficulty) const;
         bool   IsWorldQuest() const;
+        // False for bonus objectives, world quests and hidden tracking quests.
+        bool   CountsTowardQuestLogLimit() const;
         bool   IsEmissaryQuest() const { return QuestInfoID == QUEST_INFO_EMISSARY; }
         bool   IsAllowedInRaid(Difficulty difficulty) const;
         bool   IsDFQuest() const { return (SpecialFlags & QUEST_SPECIAL_FLAGS_DF_QUEST) != 0; }

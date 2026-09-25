@@ -396,6 +396,18 @@ bool Quest::IsRaidQuest(Difficulty difficulty) const
     return false;
 }
 
+bool Quest::CountsTowardQuestLogLimit() const
+{
+    if (HasFlag(QUEST_FLAGS_TRACKING))
+        return false;
+
+    if (IsWorldQuest())
+        return false;
+
+    // Area-driven bonus objectives (quest_bonus_rect / BonusQuestsRects).
+    return sObjectMgr->BonusQuestsRects.find(GetQuestId()) == sObjectMgr->BonusQuestsRects.end();
+}
+
 bool Quest::IsWorldQuest() const
 {
     switch (QuestInfoID)
