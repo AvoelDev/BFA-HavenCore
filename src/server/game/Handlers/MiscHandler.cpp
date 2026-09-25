@@ -500,10 +500,13 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPackets::AreaTrigger::AreaTrigge
         return;
     }
 
-    if (packet.Entered && !player->IsInAreaTriggerRadius(atEntry))
+    // Validate both directions: an "entered" packet requires the player to be inside the
+    // trigger, a "left" packet requires them to be outside it. Previously only enter packets
+    // were checked, so a crafted leave packet could fire trigger effects from anywhere.
+    if (packet.Entered != player->IsInAreaTriggerRadius(atEntry))
     {
-        TC_LOG_DEBUG("network", "HandleAreaTriggerOpcode: Player '%s' (%s) too far, ignore Area Trigger ID: %u",
-            player->GetName().c_str(), player->GetGUID().ToString().c_str(), packet.AreaTriggerID);
+        TC_LOG_DEBUG("network", "HandleAreaTriggerOpcode: Player '%s' (%s) position does not match packet (entered: %u), ignore Area Trigger ID: %u",
+            player->GetName().c_str(), player->GetGUID().ToString().c_str(), uint32(packet.Entered), packet.AreaTriggerID);
         return;
     }
 
@@ -513,7 +516,8 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPackets::AreaTrigger::AreaTrigge
     if (sScriptMgr->OnAreaTrigger(player, atEntry, packet.Entered))
         return;
 
-    if (player->IsAlive())
+    // Quest credit is only given when entering a trigger
+    if (player->IsAlive() && packet.Entered)
     {
         if (std::unordered_set<uint32> const* quests = sObjectMgr->GetQuestsForAreaTrigger(packet.AreaTriggerID))
         {
@@ -543,11 +547,21 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPackets::AreaTrigger::AreaTrigge
 
     if (sObjectMgr->IsTavernAreaTrigger(packet.AreaTriggerID))
     {
-        // set resting flag we are in the inn
-        player->GetRestMgr().SetRestFlag(REST_FLAG_IN_TAVERN, atEntry->ID);
+        // set resting flag while inside the inn, clear it when leaving
+        if (packet.Entered)
+        {
+            player->GetRestMgr().SetRestFlag(REST_FLAG_IN_TAVERN, atEntry->ID);
 
-        if (sWorld->IsFFAPvPRealm())
-            player->RemovePvpFlag(UNIT_BYTE2_FLAG_FFA_PVP);
+            if (sWorld->IsFFAPvPRealm())
+                player->RemovePvpFlag(UNIT_BYTE2_FLAG_FFA_PVP);
+        }
+        else
+        {
+            player->GetRestMgr().RemoveRestFlag(REST_FLAG_IN_TAVERN);
+
+            if (sWorld->IsFFAPvPRealm())
+                player->AddPvpFlag(UNIT_BYTE2_FLAG_FFA_PVP);
+        }
 
         return;
     }
@@ -558,6 +572,10 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPackets::AreaTrigger::AreaTrigge
     if (OutdoorPvP* pvp = player->GetOutdoorPvP())
         if (pvp->HandleAreaTrigger(_player, packet.AreaTriggerID, packet.Entered))
             return;
+
+    // Teleport triggers (dungeon portals etc.) only act on enter
+    if (!packet.Entered)
+        return;
 
     if (AreaTriggerTeleportStruct const* at = sObjectMgr->GetAreaTrigger(int64(packet.AreaTriggerID)))
         player->TeleportTo(at);
